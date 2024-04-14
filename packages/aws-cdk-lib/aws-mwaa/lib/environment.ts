@@ -23,17 +23,30 @@ export interface EnvironmentProps {
    * The relative path to the DAGs folder on the S3 bucket.
    */
   readonly dagS3Path: string;
+  /**
+   * The environment class type.
+   */
+  readonly environmentClass: EnvironmentClass;
 }
 
 /**
  * The supported Airflow version.
  */
 export enum AirflowVersion {
-  v2_4_3 = '2.4.3',
-  v2_5_1 = '2.5.1',
-  v2_6_3 = '2.6.3',
-  v2_7_2 = '2.7.2',
-  v2_8_1 = '2.8.1',
+  V2_4_3 = '2.4.3',
+  V2_5_1 = '2.5.1',
+  V2_6_3 = '2.6.3',
+  V2_7_2 = '2.7.2',
+  V2_8_1 = '2.8.1',
+}
+
+/**
+ * The environment class.
+ */
+export enum EnvironmentClass {
+  MW1_SMALL = 'mw1.small',
+  MW1_MEDIUM = 'mw1.medium',
+  MW1_LARGE = 'mw1.large',
 }
 
 /**
@@ -48,6 +61,7 @@ export class Environment extends Resource {
       airflowVersion: props.airflowVersion,
       sourceBucketArn: props.sourceBucket.bucketArn,
       dagS3Path: props.dagS3Path,
+      environmentClass: props.environmentClass,
     });
   }
 }
