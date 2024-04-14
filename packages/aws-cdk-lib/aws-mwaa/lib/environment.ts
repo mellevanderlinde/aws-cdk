@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import { CfnEnvironment } from './mwaa.generated';
+import * as ec2 from '../../aws-ec2';
 import * as iam from '../../aws-iam';
 import * as s3 from '../../aws-s3';
 import { IBucket } from '../../aws-s3/lib/bucket';
@@ -38,6 +39,14 @@ export interface EnvironmentProps {
    * @default - A new role will be created, having the default policies attached.
    */
   readonly role?: iam.IRole;
+  /**
+   * Security groups to attach to the environment. Between 1 and 5 security groups must be provided.
+   */
+  readonly securityGroups: ec2.ISecurityGroup[];
+  /**
+   * Two subnets to attach to the environment.
+   */
+  readonly subnets: ec2.ISubnet[];
 }
 
 /**
@@ -71,6 +80,8 @@ export class Environment extends Resource {
   public readonly environmentClass: string;
   public readonly name: string;
   public readonly role: iam.IRole;
+  public readonly securityGroups: ec2.ISecurityGroup[];
+  public readonly subnets: ec2.ISubnet[];
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
@@ -80,92 +91,19 @@ export class Environment extends Resource {
     this.dagS3Path = props.dagS3Path;
     this.environmentClass = props.environmentClass;
     this.name = props.name;
+    this.securityGroups = props.securityGroups;
+    this.subnets = props.subnets;
+
+    if (this.securityGroups.length === 0 || this.securityGroups.length > 5) {
+      throw new Error(`Received ${this.securityGroups.length} security groups, while between 1 and 5 are required`);
+    }
+
+    if (this.subnets.length !== 2) {
+      throw new Error(`Received ${this.subnets.length} subnet(s), while 2 are required`);
+    }
 
     if (!props.role) {
-      this.role = new iam.Role(this, 'ExecutionRole', {
-        roleName: `AmazonMWAA-${props.name}-ExecutionRole`,
-        assumedBy: new iam.CompositePrincipal(
-          new iam.ServicePrincipal('airflow-env.amazonaws.com'),
-          new iam.ServicePrincipal('airflow.amazonaws.com'),
-        ),
-      });
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        actions: ['airflow:PublishMetrics'],
-        resources: [this.stack.formatArn({
-          service: 'airflow',
-          resource: 'environment',
-          resourceName: props.name,
-        })],
-      }));
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        effect: iam.Effect.DENY,
-        actions: ['s3:ListAllMyBuckets'],
-        resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
-      }));
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        actions: ['s3:GetObject*', 's3:GetBucket*', 's3:List*'],
-        resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
-      }));
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        actions: [
-          'logs:CreateLogStream',
-          'logs:CreateLogGroup',
-          'logs:PutLogEvents',
-          'logs:GetLogEvents',
-          'logs:GetLogRecord',
-          'logs:GetLogGroupFields',
-          'logs:GetQueryResults',
-        ],
-        resources: [this.stack.formatArn({
-          service: 'logs',
-          resource: 'log-group',
-          resourceName: `airflow-${props.name}-*`,
-        })],
-      }));
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        actions: ['logs:DescribeLogGroups', 'cloudwatch:PutMetricData'],
-        resources: ['*'],
-      }));
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        actions: [
-          'sqs:ChangeMessageVisibility',
-          'sqs:DeleteMessage',
-          'sqs:GetQueueAttributes',
-          'sqs:GetQueueUrl',
-          'sqs:ReceiveMessage',
-          'sqs:SendMessage',
-        ],
-        resources: [this.stack.formatArn({
-          service: 'sqs',
-          account: '*',
-          resource: 'airflow-celery-*',
-        })],
-      }));
-
-      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: [
-          'kms:Decrypt',
-          'kms:DescribeKey',
-          'kms:GenerateDataKey*',
-          'kms:Encrypt',
-        ],
-        notResources: [this.stack.formatArn({
-          service: 'kms',
-          resource: 'key',
-          region: '*',
-          resourceName: '*',
-        })],
-        conditions: {
-          StringLike: { 'kms:ViaService': `sqs.${this.stack.region}.amazonaws.com` },
-        },
-      }));
+      this.role = this.createRole();
     } else {
       this.role = props.role;
     }
@@ -176,7 +114,108 @@ export class Environment extends Resource {
       environmentClass: props.environmentClass,
       executionRoleArn: this.role.roleArn,
       name: this.name,
+      networkConfiguration: {
+        securityGroupIds: this.renderSecurityGroups(),
+        subnetIds: this.renderSubnets(),
+      },
       sourceBucketArn: this.bucket.bucketArn,
     });
+  }
+
+  private renderSubnets(): string[] {
+    return this.subnets.map(subnet => subnet.subnetId);
+  }
+
+  private renderSecurityGroups(): string[] {
+    return this.securityGroups.map(sg => sg.securityGroupId);
+  }
+
+  private createRole(): iam.Role {
+    const role = new iam.Role(this, 'ExecutionRole', {
+      roleName: `AmazonMWAA-${this.name}-ExecutionRole`,
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ServicePrincipal('airflow-env.amazonaws.com'),
+        new iam.ServicePrincipal('airflow.amazonaws.com'),
+      ),
+    });
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: ['airflow:PublishMetrics'],
+      resources: [this.stack.formatArn({
+        service: 'airflow',
+        resource: 'environment',
+        resourceName: this.name,
+      })],
+    }));
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.DENY,
+      actions: ['s3:ListAllMyBuckets'],
+      resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
+    }));
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject*', 's3:GetBucket*', 's3:List*'],
+      resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
+    }));
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: [
+        'logs:CreateLogStream',
+        'logs:CreateLogGroup',
+        'logs:PutLogEvents',
+        'logs:GetLogEvents',
+        'logs:GetLogRecord',
+        'logs:GetLogGroupFields',
+        'logs:GetQueryResults',
+      ],
+      resources: [this.stack.formatArn({
+        service: 'logs',
+        resource: 'log-group',
+        resourceName: `airflow-${this.name}-*`,
+      })],
+    }));
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: ['logs:DescribeLogGroups', 'cloudwatch:PutMetricData'],
+      resources: ['*'],
+    }));
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      actions: [
+        'sqs:ChangeMessageVisibility',
+        'sqs:DeleteMessage',
+        'sqs:GetQueueAttributes',
+        'sqs:GetQueueUrl',
+        'sqs:ReceiveMessage',
+        'sqs:SendMessage',
+      ],
+      resources: [this.stack.formatArn({
+        service: 'sqs',
+        account: '*',
+        resource: 'airflow-celery-*',
+      })],
+    }));
+
+    role.addToPrincipalPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'kms:Decrypt',
+        'kms:DescribeKey',
+        'kms:GenerateDataKey*',
+        'kms:Encrypt',
+      ],
+      notResources: [this.stack.formatArn({
+        service: 'kms',
+        resource: 'key',
+        region: '*',
+        resourceName: '*',
+      })],
+      conditions: {
+        StringLike: { 'kms:ViaService': `sqs.${this.stack.region}.amazonaws.com` },
+      },
+    }));
+
+    return role;
   }
 }
