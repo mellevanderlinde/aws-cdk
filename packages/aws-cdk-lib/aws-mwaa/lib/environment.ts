@@ -29,9 +29,14 @@ export interface EnvironmentProps {
    */
   readonly environmentClass: EnvironmentClass;
   /**
-   * The environment's execution role.
+   * Environment execution role.
+   *
+   * The role must be assumable by the service principals 'airflow-env.amazonaws.com'
+   * and 'airflow.amazonaws.com'.
+   *
+   * @default - A new role will be created, having the default policies attached.
    */
-  readonly executionRole?: iam.IRole;
+  readonly role?: iam.IRole;
 }
 
 /**
@@ -59,13 +64,13 @@ export enum EnvironmentClass {
  */
 export class Environment extends Resource {
 
-  public readonly executionRole: iam.IRole;
+  public readonly role: iam.IRole;
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
 
-    if (!props.executionRole) {
-      this.executionRole = new iam.Role(this, 'ExecutionRole', {
+    if (!props.role) {
+      this.role = new iam.Role(this, 'ExecutionRole', {
         roleName: `AmazonMWAA-${props.name}-ExecutionRole`,
         assumedBy: new iam.CompositePrincipal(
           new iam.ServicePrincipal('airflow-env.amazonaws.com'),
@@ -73,7 +78,7 @@ export class Environment extends Resource {
         ),
       });
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: ['airflow:PublishMetrics'],
         resources: [this.stack.formatArn({
           service: 'airflow',
@@ -82,18 +87,18 @@ export class Environment extends Resource {
         })],
       }));
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         effect: iam.Effect.DENY,
         actions: ['s3:ListAllMyBuckets'],
         resources: [props.sourceBucket.bucketArn, props.sourceBucket.arnForObjects('*')],
       }));
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: ['s3:GetObject*', 's3:GetBucket*', 's3:List*'],
         resources: [props.sourceBucket.bucketArn, props.sourceBucket.arnForObjects('*')],
       }));
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: [
           'logs:CreateLogStream',
           'logs:CreateLogGroup',
@@ -110,12 +115,12 @@ export class Environment extends Resource {
         })],
       }));
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: ['logs:DescribeLogGroups', 'cloudwatch:PutMetricData'],
         resources: ['*'],
       }));
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: [
           'sqs:ChangeMessageVisibility',
           'sqs:DeleteMessage',
@@ -131,7 +136,7 @@ export class Environment extends Resource {
         })],
       }));
 
-      this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
           'kms:Decrypt',
@@ -150,7 +155,7 @@ export class Environment extends Resource {
         },
       }));
     } else {
-      this.executionRole = props.executionRole;
+      this.role = props.role;
     }
 
     new CfnEnvironment(this, 'Resource', {
@@ -159,7 +164,7 @@ export class Environment extends Resource {
       sourceBucketArn: props.sourceBucket.bucketArn,
       dagS3Path: props.dagS3Path,
       environmentClass: props.environmentClass,
-      executionRoleArn: this.executionRole.roleArn,
+      executionRoleArn: this.role.roleArn,
     });
   }
 }

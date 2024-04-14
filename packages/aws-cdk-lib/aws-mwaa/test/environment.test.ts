@@ -254,7 +254,7 @@ describe('Environment', () => {
       const stack = new cdk.Stack();
       const bucket = new s3.Bucket(stack, 'Bucket');
 
-      const executionRole = new iam.Role(stack, 'ExecutionRole', {
+      const role = new iam.Role(stack, 'ExecutionRole', {
         roleName: 'AttachedExecutionRole',
         assumedBy: new iam.CompositePrincipal(
           new iam.ServicePrincipal('airflow-env.amazonaws.com'),
@@ -268,7 +268,7 @@ describe('Environment', () => {
         sourceBucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        executionRole,
+        role,
       });
 
       const template = Template.fromStack(stack);
