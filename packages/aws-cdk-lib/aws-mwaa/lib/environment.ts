@@ -60,7 +60,7 @@ export enum EnvironmentClass {
 export class Environment extends Resource {
 
   public readonly executionRole: iam.IRole;
-  
+
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
 
@@ -81,18 +81,18 @@ export class Environment extends Resource {
           resourceName: props.name,
         })],
       }));
-  
+
       this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
         effect: iam.Effect.DENY,
         actions: ['s3:ListAllMyBuckets'],
         resources: [props.sourceBucket.bucketArn, props.sourceBucket.arnForObjects('*')],
       }));
-  
+
       this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: ['s3:GetObject*', 's3:GetBucket*', 's3:List*'],
         resources: [props.sourceBucket.bucketArn, props.sourceBucket.arnForObjects('*')],
       }));
-  
+
       this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: [
           'logs:CreateLogStream',
@@ -109,12 +109,12 @@ export class Environment extends Resource {
           resourceName: `airflow-${props.name}-*`,
         })],
       }));
-  
+
       this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: ['logs:DescribeLogGroups', 'cloudwatch:PutMetricData'],
         resources: ['*'],
       }));
-  
+
       this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: [
           'sqs:ChangeMessageVisibility',
@@ -130,7 +130,7 @@ export class Environment extends Resource {
           resource: 'airflow-celery-*',
         })],
       }));
-  
+
       this.executionRole.addToPrincipalPolicy(new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
