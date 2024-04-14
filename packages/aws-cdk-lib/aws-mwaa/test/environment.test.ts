@@ -11,23 +11,23 @@ describe('Environment', () => {
       const bucket = new s3.Bucket(stack, 'Bucket');
 
       new mwaa.Environment(stack, 'Environment', {
-        name: 'Airflow',
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        name: 'Airflow',
       });
 
       const template = Template.fromStack(stack);
 
       template.resourceCountIs('AWS::MWAA::Environment', 1);
       template.hasResourceProperties('AWS::MWAA::Environment', {
-        Name: 'Airflow',
         AirflowVersion: '2.8.1',
-        SourceBucketArn: { 'Fn::GetAtt': ['Bucket83908E77', 'Arn'] },
         DagS3Path: 'dags',
         EnvironmentClass: 'mw1.small',
         ExecutionRoleArn: { 'Fn::GetAtt': ['EnvironmentExecutionRoleA0E74382', 'Arn'] },
+        Name: 'Airflow',
+        SourceBucketArn: { 'Fn::GetAtt': ['Bucket83908E77', 'Arn'] },
       });
 
       template.resourceCountIs('AWS::IAM::Role', 1);
@@ -255,18 +255,18 @@ describe('Environment', () => {
       const bucket = new s3.Bucket(stack, 'Bucket');
 
       const environment = new mwaa.Environment(stack, 'Environment', {
-        name: 'Airflow',
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        name: 'Airflow',
       });
 
-      expect(environment.name).toBe('Airflow');
       expect(environment.airflowVersion).toBe('2.8.1');
       expect(environment.bucket).toBeInstanceOf(s3.Bucket);
       expect(environment.dagS3Path).toBe('dags');
       expect(environment.environmentClass).toBe('mw1.small');
+      expect(environment.name).toBe('Airflow');
       expect(environment.role).toBeInstanceOf(iam.Role);
     });
 
@@ -283,11 +283,11 @@ describe('Environment', () => {
       });
 
       new mwaa.Environment(stack, 'Environment', {
-        name: 'Airflow',
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        name: 'Airflow',
         role,
       });
 

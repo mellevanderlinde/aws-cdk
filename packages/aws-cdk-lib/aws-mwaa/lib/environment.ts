@@ -10,10 +10,6 @@ import { Resource } from '../../core';
  */
 export interface EnvironmentProps {
   /**
-   * Name of the environment.
-   */
-  readonly name: string;
-  /**
    * Airflow version.
    */
   readonly airflowVersion: AirflowVersion;
@@ -29,6 +25,10 @@ export interface EnvironmentProps {
    * The environment class type.
    */
   readonly environmentClass: EnvironmentClass;
+  /**
+   * Name of the environment.
+   */
+  readonly name: string;
   /**
    * Environment execution role.
    *
@@ -65,21 +65,21 @@ export enum EnvironmentClass {
  */
 export class Environment extends Resource {
 
-  public readonly name: string;
   public readonly airflowVersion: string;
   public readonly bucket: s3.IBucket;
   public readonly dagS3Path: string;
   public readonly environmentClass: string;
+  public readonly name: string;
   public readonly role: iam.IRole;
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
 
-    this.name = props.name;
     this.airflowVersion = props.airflowVersion;
     this.bucket = props.bucket;
     this.dagS3Path = props.dagS3Path;
     this.environmentClass = props.environmentClass;
+    this.name = props.name;
 
     if (!props.role) {
       this.role = new iam.Role(this, 'ExecutionRole', {
@@ -171,12 +171,12 @@ export class Environment extends Resource {
     }
 
     new CfnEnvironment(this, 'Resource', {
-      name: this.name,
       airflowVersion: this.airflowVersion,
-      sourceBucketArn: this.bucket.bucketArn,
       dagS3Path: props.dagS3Path,
       environmentClass: props.environmentClass,
       executionRoleArn: this.role.roleArn,
+      name: this.name,
+      sourceBucketArn: this.bucket.bucketArn,
     });
   }
 }
