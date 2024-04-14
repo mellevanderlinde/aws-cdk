@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { CfnEnvironment } from './mwaa.generated';
 import * as iam from '../../aws-iam';
+import * as s3 from '../../aws-s3';
 import { IBucket } from '../../aws-s3/lib/bucket';
 import { Resource } from '../../core';
 
@@ -19,7 +20,7 @@ export interface EnvironmentProps {
   /**
    * S3 bucket that contains Airflow DAGs.
    */
-  readonly sourceBucket: IBucket;
+  readonly bucket: IBucket;
   /**
    * The relative path to the DAGs folder on the S3 bucket.
    */
@@ -64,10 +65,21 @@ export enum EnvironmentClass {
  */
 export class Environment extends Resource {
 
+  public readonly name: string;
+  public readonly airflowVersion: string;
+  public readonly bucket: s3.IBucket;
+  public readonly dagS3Path: string;
+  public readonly environmentClass: string;
   public readonly role: iam.IRole;
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
+
+    this.name = props.name;
+    this.airflowVersion = props.airflowVersion;
+    this.bucket = props.bucket;
+    this.dagS3Path = props.dagS3Path;
+    this.environmentClass = props.environmentClass;
 
     if (!props.role) {
       this.role = new iam.Role(this, 'ExecutionRole', {
@@ -90,12 +102,12 @@ export class Environment extends Resource {
       this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         effect: iam.Effect.DENY,
         actions: ['s3:ListAllMyBuckets'],
-        resources: [props.sourceBucket.bucketArn, props.sourceBucket.arnForObjects('*')],
+        resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
       }));
 
       this.role.addToPrincipalPolicy(new iam.PolicyStatement({
         actions: ['s3:GetObject*', 's3:GetBucket*', 's3:List*'],
-        resources: [props.sourceBucket.bucketArn, props.sourceBucket.arnForObjects('*')],
+        resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
       }));
 
       this.role.addToPrincipalPolicy(new iam.PolicyStatement({
@@ -159,9 +171,9 @@ export class Environment extends Resource {
     }
 
     new CfnEnvironment(this, 'Resource', {
-      name: props.name,
-      airflowVersion: props.airflowVersion,
-      sourceBucketArn: props.sourceBucket.bucketArn,
+      name: this.name,
+      airflowVersion: this.airflowVersion,
+      sourceBucketArn: this.bucket.bucketArn,
       dagS3Path: props.dagS3Path,
       environmentClass: props.environmentClass,
       executionRoleArn: this.role.roleArn,

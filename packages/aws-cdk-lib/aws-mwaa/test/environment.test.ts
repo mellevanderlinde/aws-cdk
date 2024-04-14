@@ -13,7 +13,7 @@ describe('Environment', () => {
       new mwaa.Environment(stack, 'Environment', {
         name: 'Airflow',
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
-        sourceBucket: bucket,
+        bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
       });
@@ -250,6 +250,26 @@ describe('Environment', () => {
       });
     });
 
+    test('construct properties', () => {
+      const stack = new cdk.Stack();
+      const bucket = new s3.Bucket(stack, 'Bucket');
+
+      const environment = new mwaa.Environment(stack, 'Environment', {
+        name: 'Airflow',
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+      });
+
+      expect(environment.name).toBe('Airflow');
+      expect(environment.airflowVersion).toBe('2.8.1');
+      expect(environment.bucket).toBeInstanceOf(s3.Bucket);
+      expect(environment.dagS3Path).toBe('dags');
+      expect(environment.environmentClass).toBe('mw1.small');
+      expect(environment.role).toBeInstanceOf(iam.Role);
+    });
+
     test('execution role attached', () => {
       const stack = new cdk.Stack();
       const bucket = new s3.Bucket(stack, 'Bucket');
@@ -265,7 +285,7 @@ describe('Environment', () => {
       new mwaa.Environment(stack, 'Environment', {
         name: 'Airflow',
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
-        sourceBucket: bucket,
+        bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
         role,
