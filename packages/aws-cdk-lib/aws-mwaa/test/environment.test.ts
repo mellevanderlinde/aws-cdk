@@ -67,6 +67,10 @@ describe('Environment', () => {
       expect(environment.environmentClass).toBe('mw1.small');
       expect(environment.name).toBe('Airflow');
       expect(environment.role).toBeInstanceOf(iam.Role);
+      expect(environment.securityGroups).toBeInstanceOf(Array);
+      expect(environment.securityGroups[0]).toBeInstanceOf(ec2.SecurityGroup);
+      expect(environment.subnets).toBeInstanceOf(Array);
+      expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
     });
 
     test('execution role attached', () => {
@@ -136,7 +140,14 @@ describe('Environment', () => {
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
         name: 'Airflow',
-        securityGroups: [securityGroup, securityGroup, securityGroup, securityGroup, securityGroup, securityGroup],
+        securityGroups: [
+          new ec2.SecurityGroup(stack, 'SecurityGroup1', { vpc }),
+          new ec2.SecurityGroup(stack, 'SecurityGroup2', { vpc }),
+          new ec2.SecurityGroup(stack, 'SecurityGroup3', { vpc }),
+          new ec2.SecurityGroup(stack, 'SecurityGroup4', { vpc }),
+          new ec2.SecurityGroup(stack, 'SecurityGroup5', { vpc }),
+          new ec2.SecurityGroup(stack, 'SecurityGroup6', { vpc }),
+        ],
         subnets: [subnet1, subnet2],
       })).toThrow('Received 6 security groups, while between 1 and 5 are required');
     });
@@ -169,7 +180,14 @@ describe('Environment', () => {
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
         name: 'Airflow',
         securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2, subnet1],
+        subnets: [
+          subnet1, subnet2,
+          new ec2.Subnet(stack, 'subnet3', {
+            vpcId: vpc.vpcId,
+            availabilityZone: vpc.availabilityZones[0],
+            cidrBlock: vpc.vpcCidrBlock,
+          }),
+        ],
       })).toThrow('Received 3 subnet(s), while 2 are required');
     });
   });
