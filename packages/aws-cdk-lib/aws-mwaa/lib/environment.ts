@@ -150,7 +150,7 @@ export class Environment extends Resource {
     this.subnets = props.subnets;
     this.tags = props.tags;
 
-    if (this.securityGroups.length === 0 || this.securityGroups.length > 5) {
+    if (this.securityGroups.length < 1 || this.securityGroups.length > 5) {
       throw new Error(`Received ${this.securityGroups.length} security groups, while between 1 and 5 are required`);
     }
 
