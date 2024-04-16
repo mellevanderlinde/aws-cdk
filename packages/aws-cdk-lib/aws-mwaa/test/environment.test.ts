@@ -3,6 +3,7 @@ import * as ec2 from '../../aws-ec2/lib';
 import * as iam from '../../aws-iam/lib';
 import * as s3 from '../../aws-s3/lib';
 import * as cdk from '../../core';
+import * as kms from '../../aws-kms/lib';
 import * as mwaa from '../lib';
 
 describe('Environment', () => {
@@ -65,10 +66,12 @@ describe('Environment', () => {
         subnets: [subnet1, subnet2],
       });
 
+      expect(environment.accessMode).toBe(undefined);
       expect(environment.airflowVersion).toBe('2.8.1');
       expect(environment.bucket).toBeInstanceOf(s3.Bucket);
       expect(environment.dagS3Path).toBe('dags');
       expect(environment.environmentClass).toBe('mw1.small');
+      expect(environment.kmsKey).toBe(undefined);
       expect(environment.maxWorkers).toBe(1);
       expect(environment.minWorkers).toBe(1);
       expect(environment.name).toBe('Airflow');
@@ -249,6 +252,36 @@ describe('Environment', () => {
         schedulers: 6,
         subnets: [subnet1, subnet2],
       })).toThrow('Number of specified schedulers is 6, while it must be between 2 to 5.');
+    });
+
+    test('access mode specified', () => {
+      expect(new mwaa.Environment(stack, 'Environment', {
+        accessMode: mwaa.AccessMode.PRIVATE_ONLY,
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket: bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
+        name: 'Airflow',
+        securityGroups: [securityGroup],
+        subnets: [subnet1, subnet2],
+      }).accessMode).toBe('PRIVATE_ONLY');
+    });
+
+    test('kms key specified', () => {
+      expect(new mwaa.Environment(stack, 'Environment', {
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket: bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        kmsKey: new kms.Key(stack, "Key"),
+        maxWorkers: 1,
+        minWorkers: 1,
+        name: 'Airflow',
+        securityGroups: [securityGroup],
+        subnets: [subnet1, subnet2],
+      }).kmsKey).toBeInstanceOf(kms.Key);
     });
   });
 });

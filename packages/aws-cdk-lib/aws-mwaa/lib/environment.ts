@@ -3,6 +3,7 @@ import { CfnEnvironment } from './mwaa.generated';
 import * as ec2 from '../../aws-ec2';
 import * as iam from '../../aws-iam';
 import * as s3 from '../../aws-s3';
+import * as kms from '../../aws-kms';
 import { IBucket } from '../../aws-s3/lib/bucket';
 import { Resource } from '../../core';
 
@@ -26,6 +27,10 @@ export interface EnvironmentProps {
    * The environment class type.
    */
   readonly environmentClass: EnvironmentClass;
+  /**
+   * Key to encrypt and decrypt data in the environment.
+   */
+  readonly kmsKey?: kms.Key;
   /**
    * Maximum number of workers to run in the environment.
    */
@@ -100,10 +105,12 @@ export enum EnvironmentClass {
  */
 export class Environment extends Resource {
 
+  public readonly accessMode?: AccessMode;
   public readonly airflowVersion: string;
   public readonly bucket: s3.IBucket;
   public readonly dagS3Path: string;
   public readonly environmentClass: string;
+  public readonly kmsKey?: kms.Key;
   public readonly maxWorkers: number;
   public readonly minWorkers: number;
   public readonly name: string;
@@ -115,10 +122,12 @@ export class Environment extends Resource {
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
 
+    this.accessMode = !props.accessMode ? undefined : props.accessMode;
     this.airflowVersion = props.airflowVersion;
     this.bucket = props.bucket;
     this.dagS3Path = props.dagS3Path;
     this.environmentClass = props.environmentClass;
+    this.kmsKey = !props.kmsKey ? undefined : props.kmsKey;
     this.maxWorkers = props.maxWorkers;
     this.minWorkers = props.minWorkers;
     this.name = props.name;
@@ -141,11 +150,12 @@ export class Environment extends Resource {
 
     new CfnEnvironment(this, 'Resource', {
       airflowVersion: this.airflowVersion,
-      dagS3Path: props.dagS3Path,
-      environmentClass: props.environmentClass,
+      dagS3Path: this.dagS3Path,
+      environmentClass: this.environmentClass,
       executionRoleArn: this.role.roleArn,
-      maxWorkers: props.maxWorkers,
-      minWorkers: props.minWorkers,
+      kmsKey: this.kmsKey?.keyArn,
+      maxWorkers: this.maxWorkers,
+      minWorkers: this.minWorkers,
       name: this.name,
       networkConfiguration: {
         securityGroupIds: this.renderSecurityGroups(),
@@ -153,7 +163,7 @@ export class Environment extends Resource {
       },
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
-      webserverAccessMode: props.accessMode,
+      webserverAccessMode: this.accessMode,
     });
   }
 
