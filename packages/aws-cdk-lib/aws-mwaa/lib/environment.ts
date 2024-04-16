@@ -28,6 +28,10 @@ export interface EnvironmentProps {
    */
   readonly dagS3Path: string;
   /**
+   * Whether the VPC endpoints configured for the environment are created, and managed, by the customer or by Amazon MWAA.
+   */
+  readonly endpointManagement?: EndpointManagement;
+  /**
    * The environment class type.
    */
   readonly environmentClass: EnvironmentClass;
@@ -96,6 +100,14 @@ export enum AirflowVersion {
 }
 
 /**
+ * Create and manage the VPC endpoints by either the customer or MWAA.
+ */
+export enum EndpointManagement {
+  CUSTOMER = 'CUSTOMER',
+  SERVICE = 'SERVICE',
+}
+
+/**
  * The environment class.
  */
 export enum EnvironmentClass {
@@ -121,6 +133,7 @@ export class Environment extends Resource {
   public readonly airflowVersion: string;
   public readonly bucket: s3.IBucket;
   public readonly dagS3Path: string;
+  public readonly endpointManagement?: string;
   public readonly environmentClass: string;
   public readonly kmsKey?: kms.Key;
   public readonly maxWorkers: number;
@@ -139,6 +152,7 @@ export class Environment extends Resource {
     this.airflowVersion = props.airflowVersion;
     this.bucket = props.bucket;
     this.dagS3Path = props.dagS3Path;
+    this.endpointManagement = props.endpointManagement;
     this.environmentClass = props.environmentClass;
     this.kmsKey = props.kmsKey;
     this.maxWorkers = props.maxWorkers;
@@ -165,6 +179,7 @@ export class Environment extends Resource {
     new CfnEnvironment(this, 'Resource', {
       airflowVersion: this.airflowVersion,
       dagS3Path: this.dagS3Path,
+      endpointManagement: this.endpointManagement,
       environmentClass: this.environmentClass,
       executionRoleArn: this.role.roleArn,
       kmsKey: this.kmsKey?.keyArn,

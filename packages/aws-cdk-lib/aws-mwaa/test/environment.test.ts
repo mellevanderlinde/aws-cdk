@@ -56,6 +56,7 @@ describe('Environment', () => {
       expect(environment.airflowVersion).toBe('2.8.1');
       expect(environment.bucket).toBeInstanceOf(s3.Bucket);
       expect(environment.dagS3Path).toBe('dags');
+      expect(environment.endpointManagement).toBe(undefined);
       expect(environment.environmentClass).toBe('mw1.small');
       expect(environment.kmsKey).toBe(undefined);
       expect(environment.maxWorkers).toBe(1);
@@ -247,6 +248,7 @@ describe('Environment', () => {
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
+        endpointManagement: mwaa.EndpointManagement.SERVICE,
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
         kmsKey: new kms.Key(stack, 'Key'),
         maxWorkers: 1,
@@ -258,6 +260,7 @@ describe('Environment', () => {
       });
 
       expect(environment.accessMode).toBe('PRIVATE_ONLY');
+      expect(environment.endpointManagement).toBe('SERVICE');
       expect(environment.kmsKey).toBeInstanceOf(kms.Key);
       expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });
