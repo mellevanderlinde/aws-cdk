@@ -37,12 +37,8 @@ describe('Environment', () => {
 
     test('all defaults', () => {
       const environment = new mwaa.Environment(stack, 'Environment', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
@@ -81,12 +77,8 @@ describe('Environment', () => {
       });
 
       new mwaa.Environment(stack, 'Environment', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         role,
         securityGroups: [securityGroup],
@@ -125,24 +117,16 @@ describe('Environment', () => {
 
     test('incorrect number of security groups', () => {
       expect(() => new mwaa.Environment(stack, 'Environment1', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [],
         subnets: [subnet1, subnet2],
       })).toThrow('Received 0 security groups, while between 1 and 5 are required');
 
       expect(() => new mwaa.Environment(stack, 'Environment2', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [
           new ec2.SecurityGroup(stack, 'SecurityGroup1', { vpc }),
@@ -158,36 +142,24 @@ describe('Environment', () => {
 
     test('incorrect number of subnets', () => {
       expect(() => new mwaa.Environment(stack, 'Environment1', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [],
       })).toThrow('Received 0 subnet(s), while 2 are required');
 
       expect(() => new mwaa.Environment(stack, 'Environment2', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1],
       })).toThrow('Received 1 subnet(s), while 2 are required');
 
       expect(() => new mwaa.Environment(stack, 'Environment3', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [
@@ -203,12 +175,8 @@ describe('Environment', () => {
 
     test('schedulers specified', () => {
       expect(new mwaa.Environment(stack, 'Environment1', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         schedulers: 4,
@@ -216,12 +184,8 @@ describe('Environment', () => {
       }).schedulers).toBe(4);
 
       expect(() => new mwaa.Environment(stack, 'Environment2', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         schedulers: 1,
@@ -229,12 +193,8 @@ describe('Environment', () => {
       })).toThrow('Number of specified schedulers is 1, while it must be between 2 to 5.');
 
       expect(() => new mwaa.Environment(stack, 'Environment3', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         schedulers: 6,
@@ -245,23 +205,27 @@ describe('Environment', () => {
     test('optional properties specified', () => {
       const environment = new mwaa.Environment(stack, 'Environment', {
         accessMode: mwaa.AccessMode.PRIVATE_ONLY,
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        airflowVersion: mwaa.AirflowVersion.V2_7_2,
         bucket: bucket,
         dagS3Path: 'dags',
         endpointManagement: mwaa.EndpointManagement.SERVICE,
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        environmentClass: mwaa.EnvironmentClass.MW1_LARGE,
         kmsKey: new kms.Key(stack, 'Key'),
-        maxWorkers: 1,
-        minWorkers: 1,
+        maxWorkers: 5,
+        minWorkers: 2,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
         tags: [{ Key: 'key', Value: 'value' }],
       });
 
+      expect(environment.airflowVersion).toBe('2.7.2');
       expect(environment.accessMode).toBe('PRIVATE_ONLY');
       expect(environment.endpointManagement).toBe('SERVICE');
+      expect(environment.environmentClass).toBe('mw1.large');
       expect(environment.kmsKey).toBeInstanceOf(kms.Key);
+      expect(environment.maxWorkers).toBe(5);
+      expect(environment.minWorkers).toBe(2);
       expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });
   });

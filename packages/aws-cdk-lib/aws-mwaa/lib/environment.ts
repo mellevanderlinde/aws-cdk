@@ -13,12 +13,16 @@ import { Resource } from '../../core';
 export interface EnvironmentProps {
   /**
    * Apache Airflow Web server access mode. To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
+   * 
+   * @default - No web server access mode defined.
    */
   readonly accessMode?: AccessMode;
   /**
    * Airflow version to be used in the environment.
+   * 
+   * @default - Airflow version 2.8.1 (latest available in MWAA) will be used.
    */
-  readonly airflowVersion: AirflowVersion;
+  readonly airflowVersion?: AirflowVersion;
   /**
    * S3 bucket that contains Airflow DAGs.
    */
@@ -29,24 +33,34 @@ export interface EnvironmentProps {
   readonly dagS3Path: string;
   /**
    * Whether the VPC endpoints configured for the environment are created, and managed, by the customer or by Amazon MWAA.
+   * 
+   * @default - No endpoint management specified.
    */
   readonly endpointManagement?: EndpointManagement;
   /**
    * The environment class type.
+   * 
+   * @default - mw1.small is used.
    */
-  readonly environmentClass: EnvironmentClass;
+  readonly environmentClass?: EnvironmentClass;
   /**
    * Key to encrypt and decrypt data in the environment.
+   * 
+   * @default - No KMS key is used.
    */
   readonly kmsKey?: kms.Key;
   /**
    * Maximum number of workers to run in the environment.
+   * 
+   * @default - 1 worker is used.
    */
-  readonly maxWorkers: number;
+  readonly maxWorkers?: number;
   /**
    * Minimum number of workers to run in the environment.
+   * 
+   * @default - 1 worker is used.
    */
-  readonly minWorkers: number;
+  readonly minWorkers?: number;
   /**
    * Name of the environment.
    */
@@ -62,6 +76,8 @@ export interface EnvironmentProps {
   readonly role?: iam.IRole;
   /**
    * Tags to attach to the environment resource.
+   * 
+   * @default - No tags are attached.
    */
   readonly tags?: Tag[];
   /**
@@ -71,7 +87,7 @@ export interface EnvironmentProps {
   /**
    * Number of schedulers to run in the environment. Accepts between 2 to 5.
    *
-   * @default - 2 schedulers.
+   * @default - 2 schedulers are used.
    */
   readonly schedulers?: number;
   /**
@@ -149,14 +165,14 @@ export class Environment extends Resource {
     super(scope, id);
 
     this.accessMode = props.accessMode;
-    this.airflowVersion = props.airflowVersion;
+    this.airflowVersion = props.airflowVersion ?? AirflowVersion.V2_8_1;
     this.bucket = props.bucket;
     this.dagS3Path = props.dagS3Path;
     this.endpointManagement = props.endpointManagement;
-    this.environmentClass = props.environmentClass;
+    this.environmentClass = props.environmentClass ?? EnvironmentClass.MW1_SMALL;
     this.kmsKey = props.kmsKey;
-    this.maxWorkers = props.maxWorkers;
-    this.minWorkers = props.minWorkers;
+    this.maxWorkers = props.maxWorkers ?? 1;
+    this.minWorkers = props.minWorkers ?? 1;
     this.name = props.name;
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
