@@ -81,6 +81,7 @@ describe('Environment', () => {
       expect(environment.schedulers).toBe(2);
       expect(environment.subnets).toBeInstanceOf(Array);
       expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
+      expect(environment.tags).toBe(undefined);
     });
 
     test('execution role attached', () => {
@@ -282,6 +283,21 @@ describe('Environment', () => {
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
       }).kmsKey).toBeInstanceOf(kms.Key);
+    });
+
+    test('tags specified', () => {
+      expect(new mwaa.Environment(stack, 'Environment', {
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket: bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
+        name: 'Airflow',
+        securityGroups: [securityGroup],
+        subnets: [subnet1, subnet2],
+        tags: [{ Key: 'key', Value: 'value' }],
+      }).tags).toStrictEqual([{"Key": "key", "Value": "value"}]);
     });
   });
 });

@@ -12,6 +12,10 @@ import { Resource } from '../../core';
  */
 export interface EnvironmentProps {
   /**
+   * Apache Airflow Web server access mode. To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
+   */
+  readonly accessMode?: AccessMode;
+  /**
    * Airflow version.
    */
   readonly airflowVersion: AirflowVersion;
@@ -53,6 +57,10 @@ export interface EnvironmentProps {
    */
   readonly role?: iam.IRole;
   /**
+   * Tags to attach to the environment resource.
+   */
+  readonly tags?: Tag[];
+  /**
    * Security groups to attach to the environment. Between 1 and 5 security groups must be provided.
    */
   readonly securityGroups: ec2.ISecurityGroup[];
@@ -66,10 +74,6 @@ export interface EnvironmentProps {
    * Two subnets to attach to the environment.
    */
   readonly subnets: ec2.ISubnet[];
-  /**
-   * Apache Airflow Web server access mode. To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
-   */
-  readonly accessMode?: AccessMode;
 }
 
 /**
@@ -101,6 +105,14 @@ export enum EnvironmentClass {
 }
 
 /**
+ * Tags to attach to the environment resource.
+ */
+export interface Tag {
+  readonly Key: string;
+  readonly Value: string;
+}
+
+/**
  * A new MWAA environment.
  */
 export class Environment extends Resource {
@@ -118,16 +130,17 @@ export class Environment extends Resource {
   public readonly securityGroups: ec2.ISecurityGroup[];
   public readonly schedulers: number;
   public readonly subnets: ec2.ISubnet[];
+  public readonly tags?: Tag[];
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
 
-    this.accessMode = !props.accessMode ? undefined : props.accessMode;
+    this.accessMode = props.accessMode;
     this.airflowVersion = props.airflowVersion;
     this.bucket = props.bucket;
     this.dagS3Path = props.dagS3Path;
     this.environmentClass = props.environmentClass;
-    this.kmsKey = !props.kmsKey ? undefined : props.kmsKey;
+    this.kmsKey = props.kmsKey;
     this.maxWorkers = props.maxWorkers;
     this.minWorkers = props.minWorkers;
     this.name = props.name;
@@ -135,6 +148,7 @@ export class Environment extends Resource {
     this.schedulers = !props.schedulers ? 2 : props.schedulers;
     this.securityGroups = props.securityGroups;
     this.subnets = props.subnets;
+    this.tags = props.tags;
 
     if (this.securityGroups.length === 0 || this.securityGroups.length > 5) {
       throw new Error(`Received ${this.securityGroups.length} security groups, while between 1 and 5 are required`);
@@ -163,6 +177,7 @@ export class Environment extends Resource {
       },
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
+      tags: this.tags,
       webserverAccessMode: this.accessMode,
     });
   }
