@@ -26,6 +26,8 @@ exports[`Environment environment tests all defaults 1`] = `
             "Arn",
           ],
         },
+        "MaxWorkers": 1,
+        "MinWorkers": 1,
         "Name": "Airflow",
         "NetworkConfiguration": {
           "SecurityGroupIds": [

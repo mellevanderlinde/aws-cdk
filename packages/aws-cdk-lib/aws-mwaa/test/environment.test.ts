@@ -40,6 +40,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
@@ -56,6 +58,8 @@ describe('Environment', () => {
         bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
@@ -65,6 +69,8 @@ describe('Environment', () => {
       expect(environment.bucket).toBeInstanceOf(s3.Bucket);
       expect(environment.dagS3Path).toBe('dags');
       expect(environment.environmentClass).toBe('mw1.small');
+      expect(environment.maxWorkers).toBe(1);
+      expect(environment.minWorkers).toBe(1);
       expect(environment.name).toBe('Airflow');
       expect(environment.role).toBeInstanceOf(iam.Role);
       expect(environment.securityGroups).toBeInstanceOf(Array);
@@ -88,6 +94,8 @@ describe('Environment', () => {
         bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         role,
         securityGroups: [securityGroup],
@@ -130,6 +138,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [],
         subnets: [subnet1, subnet2],
@@ -140,6 +150,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [
           new ec2.SecurityGroup(stack, 'SecurityGroup1', { vpc }),
@@ -159,6 +171,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [],
@@ -169,6 +183,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1],
@@ -179,6 +195,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [
@@ -198,6 +216,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         schedulers: 4,
@@ -209,6 +229,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         schedulers: 1,
@@ -220,6 +242,8 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        maxWorkers: 1,
+        minWorkers: 1,
         name: 'Airflow',
         securityGroups: [securityGroup],
         schedulers: 6,

@@ -27,6 +27,14 @@ export interface EnvironmentProps {
    */
   readonly environmentClass: EnvironmentClass;
   /**
+   * Maximum number of workers to run in the environment.
+   */
+  readonly maxWorkers: number;
+  /**
+   * Minimum number of workers to run in the environment.
+   */
+  readonly minWorkers: number;
+  /**
    * Name of the environment.
    */
   readonly name: string;
@@ -84,6 +92,8 @@ export class Environment extends Resource {
   public readonly bucket: s3.IBucket;
   public readonly dagS3Path: string;
   public readonly environmentClass: string;
+  public readonly maxWorkers: number;
+  public readonly minWorkers: number;
   public readonly name: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
@@ -97,6 +107,8 @@ export class Environment extends Resource {
     this.bucket = props.bucket;
     this.dagS3Path = props.dagS3Path;
     this.environmentClass = props.environmentClass;
+    this.maxWorkers = props.maxWorkers;
+    this.minWorkers = props.minWorkers;
     this.name = props.name;
     this.role = !props.role ? this.createRole() : props.role;
     this.schedulers = !props.schedulers ? 2 : props.schedulers;
@@ -120,6 +132,8 @@ export class Environment extends Resource {
       dagS3Path: props.dagS3Path,
       environmentClass: props.environmentClass,
       executionRoleArn: this.role.roleArn,
+      maxWorkers: props.maxWorkers,
+      minWorkers: props.minWorkers,
       name: this.name,
       networkConfiguration: {
         securityGroupIds: this.renderSecurityGroups(),
