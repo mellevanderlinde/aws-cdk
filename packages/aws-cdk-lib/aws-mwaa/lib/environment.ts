@@ -158,8 +158,8 @@ export class Environment extends Resource {
     this.maxWorkers = props.maxWorkers;
     this.minWorkers = props.minWorkers;
     this.name = props.name;
-    this.role = !props.role ? this.createRole() : props.role;
-    this.schedulers = !props.schedulers ? 2 : props.schedulers;
+    this.role = props.role ?? this.createRole();
+    this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
     this.subnets = props.subnets;
     this.tags = props.tags;
