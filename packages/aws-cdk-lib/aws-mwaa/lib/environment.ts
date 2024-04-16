@@ -2,8 +2,8 @@ import { Construct } from 'constructs';
 import { CfnEnvironment } from './mwaa.generated';
 import * as ec2 from '../../aws-ec2';
 import * as iam from '../../aws-iam';
-import * as s3 from '../../aws-s3';
 import * as kms from '../../aws-kms';
+import * as s3 from '../../aws-s3';
 import { IBucket } from '../../aws-s3/lib/bucket';
 import { Resource } from '../../core';
 

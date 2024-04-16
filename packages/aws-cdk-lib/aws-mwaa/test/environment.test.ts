@@ -1,9 +1,9 @@
 import { Template } from '../../assertions';
 import * as ec2 from '../../aws-ec2/lib';
 import * as iam from '../../aws-iam/lib';
+import * as kms from '../../aws-kms/lib';
 import * as s3 from '../../aws-s3/lib';
 import * as cdk from '../../core';
-import * as kms from '../../aws-kms/lib';
 import * as mwaa from '../lib';
 
 describe('Environment', () => {
@@ -276,7 +276,7 @@ describe('Environment', () => {
         bucket: bucket,
         dagS3Path: 'dags',
         environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        kmsKey: new kms.Key(stack, "Key"),
+        kmsKey: new kms.Key(stack, 'Key'),
         maxWorkers: 1,
         minWorkers: 1,
         name: 'Airflow',
@@ -297,7 +297,7 @@ describe('Environment', () => {
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
         tags: [{ Key: 'key', Value: 'value' }],
-      }).tags).toStrictEqual([{"Key": "key", "Value": "value"}]);
+      }).tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });
   });
 });
