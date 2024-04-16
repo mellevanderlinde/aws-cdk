@@ -16,7 +16,7 @@ export interface EnvironmentProps {
    */
   readonly accessMode?: AccessMode;
   /**
-   * Airflow version.
+   * Airflow version to be used in the environment.
    */
   readonly airflowVersion: AirflowVersion;
   /**
