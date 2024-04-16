@@ -61,6 +61,18 @@ export interface EnvironmentProps {
    * Two subnets to attach to the environment.
    */
   readonly subnets: ec2.ISubnet[];
+  /**
+   * Apache Airflow Web server access mode. To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
+   */
+  readonly accessMode?: AccessMode;
+}
+
+/**
+ * The Apache Airflow Web server access mode.
+ */
+export enum AccessMode {
+  PRIVATE_ONLY = 'PRIVATE_ONLY',
+  PUBLIC_ONLY = 'PUBLIC_ONLY',
 }
 
 /**
@@ -141,6 +153,7 @@ export class Environment extends Resource {
       },
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
+      webserverAccessMode: props.accessMode,
     });
   }
 
