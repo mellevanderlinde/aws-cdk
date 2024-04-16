@@ -98,6 +98,8 @@ export class Environment extends Resource {
     this.dagS3Path = props.dagS3Path;
     this.environmentClass = props.environmentClass;
     this.name = props.name;
+    this.role = !props.role ? this.createRole() : props.role;
+    this.schedulers = !props.schedulers ? 2 : props.schedulers;
     this.securityGroups = props.securityGroups;
     this.subnets = props.subnets;
 
@@ -107,18 +109,6 @@ export class Environment extends Resource {
 
     if (this.subnets.length !== 2) {
       throw new Error(`Received ${this.subnets.length} subnet(s), while 2 are required`);
-    }
-
-    if (!props.role) {
-      this.role = this.createRole();
-    } else {
-      this.role = props.role;
-    }
-
-    if (!props.schedulers) {
-      this.schedulers = 2;
-    } else {
-      this.schedulers = props.schedulers;
     }
 
     if (this.schedulers < 2 || this.schedulers > 5) {
