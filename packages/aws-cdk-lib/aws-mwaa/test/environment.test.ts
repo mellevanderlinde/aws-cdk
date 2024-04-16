@@ -36,7 +36,7 @@ describe('Environment', () => {
     });
 
     test('all defaults', () => {
-      new mwaa.Environment(stack, 'Environment', {
+      const environment = new mwaa.Environment(stack, 'Environment', {
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
@@ -51,20 +51,6 @@ describe('Environment', () => {
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::MWAA::Environment', 1);
       expect(template).toMatchSnapshot();
-    });
-
-    test('construct properties', () => {
-      const environment = new mwaa.Environment(stack, 'Environment', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
-        bucket,
-        dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
-        name: 'Airflow',
-        securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2],
-      });
 
       expect(environment.accessMode).toBe(undefined);
       expect(environment.airflowVersion).toBe('2.8.1');
@@ -255,23 +241,9 @@ describe('Environment', () => {
       })).toThrow('Number of specified schedulers is 6, while it must be between 2 to 5.');
     });
 
-    test('access mode specified', () => {
-      expect(new mwaa.Environment(stack, 'Environment', {
+    test('optional properties specified', () => {
+      const environment = new mwaa.Environment(stack, 'Environment', {
         accessMode: mwaa.AccessMode.PRIVATE_ONLY,
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
-        bucket: bucket,
-        dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
-        name: 'Airflow',
-        securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2],
-      }).accessMode).toBe('PRIVATE_ONLY');
-    });
-
-    test('kms key specified', () => {
-      expect(new mwaa.Environment(stack, 'Environment', {
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
@@ -282,22 +254,12 @@ describe('Environment', () => {
         name: 'Airflow',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
-      }).kmsKey).toBeInstanceOf(kms.Key);
-    });
-
-    test('tags specified', () => {
-      expect(new mwaa.Environment(stack, 'Environment', {
-        airflowVersion: mwaa.AirflowVersion.V2_8_1,
-        bucket: bucket,
-        dagS3Path: 'dags',
-        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
-        maxWorkers: 1,
-        minWorkers: 1,
-        name: 'Airflow',
-        securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2],
         tags: [{ Key: 'key', Value: 'value' }],
-      }).tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
+      });
+
+      expect(environment.accessMode).toBe('PRIVATE_ONLY');
+      expect(environment.kmsKey).toBeInstanceOf(kms.Key);
+      expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });
   });
 });
