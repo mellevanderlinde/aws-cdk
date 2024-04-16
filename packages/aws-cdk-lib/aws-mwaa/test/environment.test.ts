@@ -193,7 +193,7 @@ describe('Environment', () => {
     });
 
     test('schedulers specified', () => {
-      expect(() => new mwaa.Environment(stack, 'Environment', {
+      expect(new mwaa.Environment(stack, 'Environment1', {
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
@@ -204,7 +204,7 @@ describe('Environment', () => {
         subnets: [subnet1, subnet2],
       }).schedulers).toBe(4);
 
-      expect(() => new mwaa.Environment(stack, 'Environment', {
+      expect(() => new mwaa.Environment(stack, 'Environment2', {
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
@@ -215,7 +215,7 @@ describe('Environment', () => {
         subnets: [subnet1, subnet2],
       })).toThrow('Number of specified schedulers is 1, while it must be between 2 to 5.');
 
-      expect(() => new mwaa.Environment(stack, 'Environment', {
+      expect(() => new mwaa.Environment(stack, 'Environment3', {
         airflowVersion: mwaa.AirflowVersion.V2_8_1,
         bucket: bucket,
         dagS3Path: 'dags',
