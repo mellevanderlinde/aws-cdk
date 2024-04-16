@@ -69,6 +69,7 @@ describe('Environment', () => {
       expect(environment.role).toBeInstanceOf(iam.Role);
       expect(environment.securityGroups).toBeInstanceOf(Array);
       expect(environment.securityGroups[0]).toBeInstanceOf(ec2.SecurityGroup);
+      expect(environment.schedulers).toBe(2);
       expect(environment.subnets).toBeInstanceOf(Array);
       expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
     });
@@ -189,6 +190,41 @@ describe('Environment', () => {
           }),
         ],
       })).toThrow('Received 3 subnet(s), while 2 are required');
+    });
+
+    test('schedulers specified', () => {
+      expect(() => new mwaa.Environment(stack, 'Environment', {
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket: bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        name: 'Airflow',
+        securityGroups: [securityGroup],
+        schedulers: 4,
+        subnets: [subnet1, subnet2],
+      }).schedulers).toBe(4);
+
+      expect(() => new mwaa.Environment(stack, 'Environment', {
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket: bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        name: 'Airflow',
+        securityGroups: [securityGroup],
+        schedulers: 1,
+        subnets: [subnet1, subnet2],
+      })).toThrow('Number of specified schedulers is 1, while it must be between 2 to 5.');
+
+      expect(() => new mwaa.Environment(stack, 'Environment', {
+        airflowVersion: mwaa.AirflowVersion.V2_8_1,
+        bucket: bucket,
+        dagS3Path: 'dags',
+        environmentClass: mwaa.EnvironmentClass.MW1_SMALL,
+        name: 'Airflow',
+        securityGroups: [securityGroup],
+        schedulers: 6,
+        subnets: [subnet1, subnet2],
+      })).toThrow('Number of specified schedulers is 6, while it must be between 2 to 5.');
     });
   });
 });

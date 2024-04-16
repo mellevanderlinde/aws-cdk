@@ -44,6 +44,12 @@ export interface EnvironmentProps {
    */
   readonly securityGroups: ec2.ISecurityGroup[];
   /**
+   * Number of schedulers to run in the environment. Accepts between 2 to 5.
+   *
+   * @default - 2 schedulers.
+   */
+  readonly schedulers?: number;
+  /**
    * Two subnets to attach to the environment.
    */
   readonly subnets: ec2.ISubnet[];
@@ -81,6 +87,7 @@ export class Environment extends Resource {
   public readonly name: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
+  public readonly schedulers: number;
   public readonly subnets: ec2.ISubnet[];
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
@@ -108,6 +115,16 @@ export class Environment extends Resource {
       this.role = props.role;
     }
 
+    if (!props.schedulers) {
+      this.schedulers = 2;
+    } else {
+      this.schedulers = props.schedulers;
+    }
+
+    if (this.schedulers < 2 || this.schedulers > 5) {
+      throw new Error(`Number of specified schedulers is ${this.schedulers}, while it must be between 2 to 5.`);
+    }
+
     new CfnEnvironment(this, 'Resource', {
       airflowVersion: this.airflowVersion,
       dagS3Path: props.dagS3Path,
@@ -118,6 +135,7 @@ export class Environment extends Resource {
         securityGroupIds: this.renderSecurityGroups(),
         subnetIds: this.renderSubnets(),
       },
+      schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
     });
   }

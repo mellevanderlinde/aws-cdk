@@ -45,6 +45,7 @@ exports[`Environment environment tests all defaults 1`] = `
             },
           ],
         },
+        "Schedulers": 2,
         "SourceBucketArn": {
           "Fn::GetAtt": [
             "Bucket83908E77",
