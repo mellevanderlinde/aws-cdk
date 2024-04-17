@@ -66,6 +66,18 @@ export interface EnvironmentProps {
    */
   readonly name: string;
   /**
+   * The object version of the plugins.zip file in the S3 bucket.
+   * 
+   * @default - No version is provided.
+   */
+  readonly pluginsVersion?: string;
+  /**
+   * The object version of the requirements.txt file in the S3 bucket.
+   * 
+   * @default - No version is provided.
+   */
+  readonly requirementsVersion?: string;
+  /**
    * Environment execution role.
    *
    * The role must be assumable by the service principals 'airflow-env.amazonaws.com'
@@ -155,6 +167,8 @@ export class Environment extends Resource {
   public readonly maxWorkers: number;
   public readonly minWorkers: number;
   public readonly name: string;
+  public readonly pluginsVersion?: string;
+  public readonly requirementsVersion?: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
   public readonly schedulers: number;
@@ -174,6 +188,8 @@ export class Environment extends Resource {
     this.maxWorkers = props.maxWorkers ?? 1;
     this.minWorkers = props.minWorkers ?? 1;
     this.name = props.name;
+    this.pluginsVersion = props.pluginsVersion;
+    this.requirementsVersion = props.requirementsVersion;
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
@@ -206,6 +222,8 @@ export class Environment extends Resource {
         securityGroupIds: this.renderSecurityGroups(),
         subnetIds: this.renderSubnets(),
       },
+      pluginsS3ObjectVersion: this.pluginsVersion,
+      requirementsS3ObjectVersion: this.requirementsVersion,
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
       tags: this.tags,
