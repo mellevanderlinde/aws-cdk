@@ -28,7 +28,7 @@ export interface EnvironmentProps {
    */
   readonly bucket: IBucket;
   /**
-   * The relative path to the DAGs folder on the S3 bucket.
+   * The relative path to the DAGs folder in the S3 bucket.
    */
   readonly dagS3Path: string;
   /**
@@ -72,7 +72,7 @@ export interface EnvironmentProps {
    */
   readonly pluginsVersion?: string;
   /**
-   * The relative path to the requirements.txt file on the S3 bucket.
+   * The relative path to the requirements.txt file in the S3 bucket.
    * 
    * @default - No path is provided.
    */
@@ -108,6 +108,18 @@ export interface EnvironmentProps {
    * @default - 2 schedulers are used.
    */
   readonly schedulers?: number;
+  /**
+   * The relative path to the startup shell script file in the S3 bucket.
+   * 
+   * @default - No path is provided.
+   */
+  readonly startupScriptS3Path?: string;
+  /**
+   * The object version of the startup shell script file in the S3 bucket.
+   * 
+   * @default - No version is provided.
+   */
+  readonly startupScriptVersion?: string;
   /**
    * Two subnets to attach to the environment.
    */
@@ -179,6 +191,8 @@ export class Environment extends Resource {
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
   public readonly schedulers: number;
+  public readonly startupScriptS3Path?: string;
+  public readonly startupScriptVersion?: string;
   public readonly subnets: ec2.ISubnet[];
   public readonly tags?: Tag[];
 
@@ -201,6 +215,8 @@ export class Environment extends Resource {
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
+    this.startupScriptS3Path = props.startupScriptS3Path;
+    this.startupScriptVersion = props.startupScriptVersion;
     this.subnets = props.subnets;
     this.tags = props.tags;
 
@@ -235,6 +251,8 @@ export class Environment extends Resource {
       requirementsS3Path: this.requirementsS3Path,
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
+      startupScriptS3ObjectVersion: this.startupScriptVersion,
+      startupScriptS3Path: this.startupScriptS3Path,
       tags: this.tags,
       webserverAccessMode: this.accessMode,
     });

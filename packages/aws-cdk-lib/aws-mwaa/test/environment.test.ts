@@ -65,6 +65,8 @@ describe('Environment', () => {
       expect(environment.securityGroups).toBeInstanceOf(Array);
       expect(environment.securityGroups[0]).toBeInstanceOf(ec2.SecurityGroup);
       expect(environment.schedulers).toBe(2);
+      expect(environment.startupScriptS3Path).toBe(undefined);
+      expect(environment.startupScriptVersion).toBe(undefined);
       expect(environment.subnets).toBeInstanceOf(Array);
       expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
       expect(environment.tags).toBe(undefined);
@@ -222,6 +224,8 @@ describe('Environment', () => {
         requirementsVersion: 'requirements-hash',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
+        startupScriptS3Path: 'startup-path',
+        startupScriptVersion: 'startup-version',
         tags: [{ Key: 'key', Value: 'value' }],
       });
 
@@ -235,6 +239,8 @@ describe('Environment', () => {
       expect(environment.pluginsVersion).toBe('plugins-hash');
       expect(environment.requirementsS3Path).toBe('requirements-path');
       expect(environment.requirementsVersion).toBe('requirements-hash');
+      expect(environment.startupScriptS3Path).toBe('startup-path');
+      expect(environment.startupScriptVersion).toBe('startup-version');
       expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });
   });
