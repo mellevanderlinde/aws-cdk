@@ -59,6 +59,7 @@ describe('Environment', () => {
       expect(environment.minWorkers).toBe(1);
       expect(environment.name).toBe('Airflow');
       expect(environment.pluginsVersion).toBe(undefined);
+      expect(environment.requirementsS3Path).toBe(undefined);
       expect(environment.requirementsVersion).toBe(undefined);
       expect(environment.role).toBeInstanceOf(iam.Role);
       expect(environment.securityGroups).toBeInstanceOf(Array);
@@ -217,6 +218,7 @@ describe('Environment', () => {
         minWorkers: 2,
         name: 'Airflow',
         pluginsVersion: 'plugins-hash',
+        requirementsS3Path: 'requirements-path',
         requirementsVersion: 'requirements-hash',
         securityGroups: [securityGroup],
         subnets: [subnet1, subnet2],
@@ -231,6 +233,7 @@ describe('Environment', () => {
       expect(environment.maxWorkers).toBe(5);
       expect(environment.minWorkers).toBe(2);
       expect(environment.pluginsVersion).toBe('plugins-hash');
+      expect(environment.requirementsS3Path).toBe('requirements-path');
       expect(environment.requirementsVersion).toBe('requirements-hash');
       expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });

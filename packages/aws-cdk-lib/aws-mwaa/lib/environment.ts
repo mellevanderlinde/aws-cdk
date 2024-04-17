@@ -72,6 +72,12 @@ export interface EnvironmentProps {
    */
   readonly pluginsVersion?: string;
   /**
+   * The relative path to the requirements.txt file on the S3 bucket.
+   * 
+   * @default - No path is provided.
+   */
+  readonly requirementsS3Path?: string;
+  /**
    * The object version of the requirements.txt file in the S3 bucket.
    * 
    * @default - No version is provided.
@@ -168,6 +174,7 @@ export class Environment extends Resource {
   public readonly minWorkers: number;
   public readonly name: string;
   public readonly pluginsVersion?: string;
+  public readonly requirementsS3Path?: string;
   public readonly requirementsVersion?: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
@@ -189,6 +196,7 @@ export class Environment extends Resource {
     this.minWorkers = props.minWorkers ?? 1;
     this.name = props.name;
     this.pluginsVersion = props.pluginsVersion;
+    this.requirementsS3Path = props.requirementsS3Path;
     this.requirementsVersion = props.requirementsVersion;
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
@@ -224,6 +232,7 @@ export class Environment extends Resource {
       },
       pluginsS3ObjectVersion: this.pluginsVersion,
       requirementsS3ObjectVersion: this.requirementsVersion,
+      requirementsS3Path: this.requirementsS3Path,
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
       tags: this.tags,
