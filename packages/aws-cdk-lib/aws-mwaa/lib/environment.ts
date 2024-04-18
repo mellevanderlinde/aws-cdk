@@ -160,6 +160,8 @@ export enum EnvironmentClass {
   MW1_SMALL = 'mw1.small',
   MW1_MEDIUM = 'mw1.medium',
   MW1_LARGE = 'mw1.large',
+  MW1_XLARGE = 'mw1.xlarge',
+  MW1_2XLARGE = 'mw1.2xlarge',
 }
 
 /**
