@@ -3,6 +3,7 @@ import { CfnEnvironment } from './mwaa.generated';
 import * as ec2 from '../../aws-ec2';
 import * as iam from '../../aws-iam';
 import * as kms from '../../aws-kms';
+import * as logs from '../../aws-logs';
 import * as s3 from '../../aws-s3';
 import { IBucket } from '../../aws-s3/lib/bucket';
 import { Resource } from '../../core';
@@ -13,13 +14,13 @@ import { Resource } from '../../core';
 export interface EnvironmentProps {
   /**
    * Apache Airflow Web server access mode. To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
-   * 
+   *
    * @default - No web server access mode defined.
    */
   readonly accessMode?: AccessMode;
   /**
    * Airflow version to be used in the environment.
-   * 
+   *
    * @default - Airflow version 2.8.1 (latest available in MWAA) will be used.
    */
   readonly airflowVersion?: AirflowVersion;
@@ -28,36 +29,48 @@ export interface EnvironmentProps {
    */
   readonly bucket: IBucket;
   /**
+   * CloudWatch log group that saves the DAG processing logs.
+   *
+   * @default - No log group is used.
+   */
+  readonly dagProcessingLogGroup?: logs.LogGroup;
+  /**
    * The relative path to the DAGs folder in the S3 bucket.
    */
   readonly dagS3Path: string;
   /**
    * Whether the VPC endpoints configured for the environment are created, and managed, by the customer or by Amazon MWAA.
-   * 
+   *
    * @default - No endpoint management specified.
    */
   readonly endpointManagement?: EndpointManagement;
   /**
    * The environment class type.
-   * 
+   *
    * @default - mw1.small is used.
    */
   readonly environmentClass?: EnvironmentClass;
   /**
    * Key to encrypt and decrypt data in the environment.
-   * 
+   *
    * @default - No KMS key is used.
    */
   readonly kmsKey?: kms.Key;
   /**
+   * Logging level for the Airflow logs in CloudWatch.
+   *
+   * @default - Logging at INFO level.
+   */
+  readonly logLevel?: LogLevel;
+  /**
    * Maximum number of workers to run in the environment.
-   * 
+   *
    * @default - 1 worker is used.
    */
   readonly maxWorkers?: number;
   /**
    * Minimum number of workers to run in the environment.
-   * 
+   *
    * @default - 1 worker is used.
    */
   readonly minWorkers?: number;
@@ -67,19 +80,19 @@ export interface EnvironmentProps {
   readonly name: string;
   /**
    * The object version of the plugins.zip file in the S3 bucket.
-   * 
+   *
    * @default - No version is provided.
    */
   readonly pluginsVersion?: string;
   /**
    * The relative path to the requirements.txt file in the S3 bucket.
-   * 
+   *
    * @default - No path is provided.
    */
   readonly requirementsS3Path?: string;
   /**
    * The object version of the requirements.txt file in the S3 bucket.
-   * 
+   *
    * @default - No version is provided.
    */
   readonly requirementsVersion?: string;
@@ -93,15 +106,15 @@ export interface EnvironmentProps {
    */
   readonly role?: iam.IRole;
   /**
-   * Tags to attach to the environment resource.
-   * 
-   * @default - No tags are attached.
-   */
-  readonly tags?: Tag[];
-  /**
    * Security groups to attach to the environment. Between 1 and 5 security groups must be provided.
    */
   readonly securityGroups: ec2.ISecurityGroup[];
+  /**
+   * CloudWatch log group that saves the scheduler logs.
+   *
+   * @default - No log group is used.
+   */
+  readonly schedulerLogGroup?: logs.LogGroup;
   /**
    * Number of schedulers to run in the environment. Accepts between 2 to 5.
    *
@@ -110,13 +123,13 @@ export interface EnvironmentProps {
   readonly schedulers?: number;
   /**
    * The relative path to the startup shell script file in the S3 bucket.
-   * 
+   *
    * @default - No path is provided.
    */
   readonly startupScriptS3Path?: string;
   /**
    * The object version of the startup shell script file in the S3 bucket.
-   * 
+   *
    * @default - No version is provided.
    */
   readonly startupScriptVersion?: string;
@@ -124,6 +137,30 @@ export interface EnvironmentProps {
    * Two subnets to attach to the environment.
    */
   readonly subnets: ec2.ISubnet[];
+  /**
+   * Tags to attach to the environment resource.
+   *
+   * @default - No tags are attached.
+   */
+  readonly tags?: Tag[];
+  /**
+   * CloudWatch log group that saves the task logs.
+   *
+   * @default - No log group is used.
+   */
+  readonly taskLogGroup?: logs.LogGroup;
+  /**
+   * CloudWatch log group that saves the webserver logs.
+   *
+   * @default - No log group is used.
+   */
+  readonly webserverLogGroup?: logs.LogGroup;
+  /**
+   * CloudWatch log group that saves the worker logs.
+   *
+   * @default - No log group is used.
+   */
+  readonly workerLogGroup?: logs.LogGroup;
 }
 
 /**
@@ -164,6 +201,13 @@ export enum EnvironmentClass {
   MW1_2XLARGE = 'mw1.2xlarge',
 }
 
+export enum LogLevel {
+  INFO = 'INFO',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
+  CRITICAL = 'CRITICAL',
+}
+
 /**
  * Tags to attach to the environment resource.
  */
@@ -180,10 +224,12 @@ export class Environment extends Resource {
   public readonly accessMode?: AccessMode;
   public readonly airflowVersion: string;
   public readonly bucket: s3.IBucket;
+  public readonly dagProcessingLogGroup?: logs.LogGroup;
   public readonly dagS3Path: string;
   public readonly endpointManagement?: string;
   public readonly environmentClass: string;
   public readonly kmsKey?: kms.Key;
+  public readonly logLevel: LogLevel;
   public readonly maxWorkers: number;
   public readonly minWorkers: number;
   public readonly name: string;
@@ -192,11 +238,15 @@ export class Environment extends Resource {
   public readonly requirementsVersion?: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
+  public readonly schedulerLogGroup?: logs.LogGroup;
   public readonly schedulers: number;
   public readonly startupScriptS3Path?: string;
   public readonly startupScriptVersion?: string;
   public readonly subnets: ec2.ISubnet[];
   public readonly tags?: Tag[];
+  public readonly taskLogGroup?: logs.LogGroup;
+  public readonly webserverLogGroup?: logs.LogGroup;
+  public readonly workerLogGroup?: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
@@ -204,10 +254,12 @@ export class Environment extends Resource {
     this.accessMode = props.accessMode;
     this.airflowVersion = props.airflowVersion ?? AirflowVersion.V2_8_1;
     this.bucket = props.bucket;
+    this.dagProcessingLogGroup = props.dagProcessingLogGroup;
     this.dagS3Path = props.dagS3Path;
     this.endpointManagement = props.endpointManagement;
     this.environmentClass = props.environmentClass ?? EnvironmentClass.MW1_SMALL;
     this.kmsKey = props.kmsKey;
+    this.logLevel = props.logLevel ?? LogLevel.INFO;
     this.maxWorkers = props.maxWorkers ?? 1;
     this.minWorkers = props.minWorkers ?? 1;
     this.name = props.name;
@@ -215,12 +267,16 @@ export class Environment extends Resource {
     this.requirementsS3Path = props.requirementsS3Path;
     this.requirementsVersion = props.requirementsVersion;
     this.role = props.role ?? this.createRole();
+    this.schedulerLogGroup = props.schedulerLogGroup;
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
     this.startupScriptS3Path = props.startupScriptS3Path;
     this.startupScriptVersion = props.startupScriptVersion;
     this.subnets = props.subnets;
     this.tags = props.tags;
+    this.taskLogGroup = props.taskLogGroup;
+    this.webserverLogGroup = props.webserverLogGroup;
+    this.workerLogGroup = props.workerLogGroup;
 
     if (this.securityGroups.length < 1 || this.securityGroups.length > 5) {
       throw new Error(`Received ${this.securityGroups.length} security groups, while between 1 and 5 are required`);
@@ -234,6 +290,37 @@ export class Environment extends Resource {
       throw new Error(`Number of specified schedulers is ${this.schedulers}, while it must be between 2 to 5.`);
     }
 
+    let loggingConfiguration: CfnEnvironment.LoggingConfigurationProperty | undefined = undefined;
+    if (this.dagProcessingLogGroup || this.schedulerLogGroup || this.taskLogGroup || this.webserverLogGroup || this.workerLogGroup) {
+      loggingConfiguration = {
+        dagProcessingLogs: {
+          cloudWatchLogGroupArn: this.dagProcessingLogGroup?.logGroupArn,
+          enabled: this.dagProcessingLogGroup?.logGroupArn ? true: undefined,
+          logLevel: this.logLevel,
+        },
+        schedulerLogs: {
+          cloudWatchLogGroupArn: this.schedulerLogGroup?.logGroupArn,
+          enabled: this.schedulerLogGroup?.logGroupArn ? true: undefined,
+          logLevel: this.logLevel,
+        },
+        taskLogs: {
+          cloudWatchLogGroupArn: this.taskLogGroup?.logGroupArn,
+          enabled: this.taskLogGroup?.logGroupArn ? true: undefined,
+          logLevel: this.logLevel,
+        },
+        webserverLogs: {
+          cloudWatchLogGroupArn: this.webserverLogGroup?.logGroupArn,
+          enabled: this.webserverLogGroup?.logGroupArn ? true: undefined,
+          logLevel: this.logLevel,
+        },
+        workerLogs: {
+          cloudWatchLogGroupArn: this.workerLogGroup?.logGroupArn,
+          enabled: this.workerLogGroup?.logGroupArn ? true: undefined,
+          logLevel: this.logLevel,
+        },
+      };
+    }
+
     new CfnEnvironment(this, 'Resource', {
       airflowVersion: this.airflowVersion,
       dagS3Path: this.dagS3Path,
@@ -241,6 +328,7 @@ export class Environment extends Resource {
       environmentClass: this.environmentClass,
       executionRoleArn: this.role.roleArn,
       kmsKey: this.kmsKey?.keyArn,
+      loggingConfiguration: loggingConfiguration,
       maxWorkers: this.maxWorkers,
       minWorkers: this.minWorkers,
       name: this.name,

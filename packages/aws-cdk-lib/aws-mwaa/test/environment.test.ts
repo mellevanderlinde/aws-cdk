@@ -2,6 +2,7 @@ import { Template } from '../../assertions';
 import * as ec2 from '../../aws-ec2/lib';
 import * as iam from '../../aws-iam/lib';
 import * as kms from '../../aws-kms/lib';
+import * as logs from '../../aws-logs';
 import * as s3 from '../../aws-s3/lib';
 import * as cdk from '../../core';
 import * as mwaa from '../lib';
@@ -11,18 +12,21 @@ describe('Environment', () => {
 
     let stack: cdk.Stack;
     let bucket: s3.Bucket;
+    let dagS3Path: string;
     let vpc: ec2.Vpc;
-    let securityGroup: ec2.SecurityGroup;
+    let name: string;
+    let securityGroups: ec2.SecurityGroup[];
     let subnet1: ec2.Subnet;
     let subnet2: ec2.Subnet;
+    let subnets: ec2.Subnet[];
 
     beforeEach(() => {
       stack = new cdk.Stack();
       bucket = new s3.Bucket(stack, 'Bucket');
+      dagS3Path = 'dags';
       vpc = new ec2.Vpc(stack, 'Vpc');
-      securityGroup = new ec2.SecurityGroup(stack, 'SecurityGroup', {
-        vpc,
-      });
+      name = 'Airflow';
+      securityGroups = [new ec2.SecurityGroup(stack, 'SecurityGroup', { vpc })];
       subnet1 = new ec2.Subnet(stack, 'subnet1', {
         vpcId: vpc.vpcId,
         availabilityZone: vpc.availabilityZones[0],
@@ -33,15 +37,16 @@ describe('Environment', () => {
         availabilityZone: vpc.availabilityZones[1],
         cidrBlock: vpc.vpcCidrBlock,
       });
+      subnets = [subnet1, subnet2];
     });
 
     test('all defaults', () => {
       const environment = new mwaa.Environment(stack, 'Environment', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
+        subnets,
       });
 
       const template = Template.fromStack(stack);
@@ -51,10 +56,12 @@ describe('Environment', () => {
       expect(environment.accessMode).toBe(undefined);
       expect(environment.airflowVersion).toBe('2.8.1');
       expect(environment.bucket).toBeInstanceOf(s3.Bucket);
+      expect(environment.dagProcessingLogGroup).toBe(undefined);
       expect(environment.dagS3Path).toBe('dags');
       expect(environment.endpointManagement).toBe(undefined);
       expect(environment.environmentClass).toBe('mw1.small');
       expect(environment.kmsKey).toBe(undefined);
+      expect(environment.logLevel).toBe('INFO');
       expect(environment.maxWorkers).toBe(1);
       expect(environment.minWorkers).toBe(1);
       expect(environment.name).toBe('Airflow');
@@ -64,12 +71,16 @@ describe('Environment', () => {
       expect(environment.role).toBeInstanceOf(iam.Role);
       expect(environment.securityGroups).toBeInstanceOf(Array);
       expect(environment.securityGroups[0]).toBeInstanceOf(ec2.SecurityGroup);
+      expect(environment.schedulerLogGroup).toBe(undefined);
       expect(environment.schedulers).toBe(2);
       expect(environment.startupScriptS3Path).toBe(undefined);
       expect(environment.startupScriptVersion).toBe(undefined);
       expect(environment.subnets).toBeInstanceOf(Array);
       expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
       expect(environment.tags).toBe(undefined);
+      expect(environment.taskLogGroup).toBe(undefined);
+      expect(environment.webserverLogGroup).toBe(undefined);
+      expect(environment.workerLogGroup).toBe(undefined);
     });
 
     test('execution role attached', () => {
@@ -83,11 +94,11 @@ describe('Environment', () => {
 
       new mwaa.Environment(stack, 'Environment', {
         bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
+        dagS3Path,
+        name,
         role,
-        securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2],
+        securityGroups,
+        subnets,
       });
 
       const template = Template.fromStack(stack);
@@ -122,17 +133,17 @@ describe('Environment', () => {
 
     test('incorrect number of security groups', () => {
       expect(() => new mwaa.Environment(stack, 'Environment1', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
+        bucket,
+        dagS3Path,
+        name,
         securityGroups: [],
-        subnets: [subnet1, subnet2],
+        subnets,
       })).toThrow('Received 0 security groups, while between 1 and 5 are required');
 
       expect(() => new mwaa.Environment(stack, 'Environment2', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
+        bucket,
+        dagS3Path,
+        name,
         securityGroups: [
           new ec2.SecurityGroup(stack, 'SecurityGroup1', { vpc }),
           new ec2.SecurityGroup(stack, 'SecurityGroup2', { vpc }),
@@ -141,32 +152,32 @@ describe('Environment', () => {
           new ec2.SecurityGroup(stack, 'SecurityGroup5', { vpc }),
           new ec2.SecurityGroup(stack, 'SecurityGroup6', { vpc }),
         ],
-        subnets: [subnet1, subnet2],
+        subnets,
       })).toThrow('Received 6 security groups, while between 1 and 5 are required');
     });
 
     test('incorrect number of subnets', () => {
       expect(() => new mwaa.Environment(stack, 'Environment1', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
         subnets: [],
       })).toThrow('Received 0 subnet(s), while 2 are required');
 
       expect(() => new mwaa.Environment(stack, 'Environment2', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
         subnets: [subnet1],
       })).toThrow('Received 1 subnet(s), while 2 are required');
 
       expect(() => new mwaa.Environment(stack, 'Environment3', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
         subnets: [
           subnet1, subnet2,
           new ec2.Subnet(stack, 'subnet3', {
@@ -180,30 +191,30 @@ describe('Environment', () => {
 
     test('schedulers specified', () => {
       expect(new mwaa.Environment(stack, 'Environment1', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
         schedulers: 4,
-        subnets: [subnet1, subnet2],
+        subnets,
       }).schedulers).toBe(4);
 
       expect(() => new mwaa.Environment(stack, 'Environment2', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
         schedulers: 1,
-        subnets: [subnet1, subnet2],
+        subnets,
       })).toThrow('Number of specified schedulers is 1, while it must be between 2 to 5.');
 
       expect(() => new mwaa.Environment(stack, 'Environment3', {
-        bucket: bucket,
-        dagS3Path: 'dags',
-        name: 'Airflow',
-        securityGroups: [securityGroup],
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
         schedulers: 6,
-        subnets: [subnet1, subnet2],
+        subnets,
       })).toThrow('Number of specified schedulers is 6, while it must be between 2 to 5.');
     });
 
@@ -211,19 +222,19 @@ describe('Environment', () => {
       const environment = new mwaa.Environment(stack, 'Environment', {
         accessMode: mwaa.AccessMode.PRIVATE_ONLY,
         airflowVersion: mwaa.AirflowVersion.V2_7_2,
-        bucket: bucket,
-        dagS3Path: 'dags',
+        bucket,
+        dagS3Path,
         endpointManagement: mwaa.EndpointManagement.SERVICE,
         environmentClass: mwaa.EnvironmentClass.MW1_LARGE,
         kmsKey: new kms.Key(stack, 'Key'),
         maxWorkers: 5,
         minWorkers: 2,
-        name: 'Airflow',
+        name,
         pluginsVersion: 'plugins-hash',
         requirementsS3Path: 'requirements-path',
         requirementsVersion: 'requirements-hash',
-        securityGroups: [securityGroup],
-        subnets: [subnet1, subnet2],
+        securityGroups,
+        subnets,
         startupScriptS3Path: 'startup-path',
         startupScriptVersion: 'startup-version',
         tags: [{ Key: 'key', Value: 'value' }],
@@ -242,6 +253,26 @@ describe('Environment', () => {
       expect(environment.startupScriptS3Path).toBe('startup-path');
       expect(environment.startupScriptVersion).toBe('startup-version');
       expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
+    });
+
+    test('log groups specified', () => {
+      const environment = new mwaa.Environment(stack, 'Environment', {
+        bucket,
+        dagS3Path,
+        name,
+        securityGroups,
+        subnets,
+        dagProcessingLogGroup: new logs.LogGroup(stack, 'DagLogs'),
+        webserverLogGroup: new logs.LogGroup(stack, 'WebserverLogs'),
+        logLevel: mwaa.LogLevel.WARNING,
+      });
+
+      expect(environment.dagProcessingLogGroup).toBeInstanceOf(logs.LogGroup);
+      expect(environment.webserverLogGroup).toBeInstanceOf(logs.LogGroup);
+      expect(environment.schedulerLogGroup).toBe(undefined);
+      expect(environment.taskLogGroup).toBe(undefined);
+      expect(environment.workerLogGroup).toBe(undefined);
+      expect(environment.logLevel).toBe('WARNING');
     });
   });
 });
