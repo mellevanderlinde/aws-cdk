@@ -13,11 +13,19 @@ import { Resource } from '../../core';
  */
 export interface EnvironmentProps {
   /**
-   * Apache Airflow Web server access mode. To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
+   * Apache Airflow Web server access mode. To learn more,
+   * see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html.
    *
    * @default - No web server access mode defined.
    */
   readonly accessMode?: AccessMode;
+  /**
+   * Key-value pairs of the Airflow configuration options for the environment.
+   * To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-env-variables.html.
+   *
+   * @default - No configurations are specified.
+   */
+  readonly airflowConfigurations?: { [key: string]: string };
   /**
    * Airflow version to be used in the environment.
    *
@@ -39,7 +47,7 @@ export interface EnvironmentProps {
    */
   readonly dagS3Path: string;
   /**
-   * Whether the VPC endpoints configured for the environment are created, and managed, by the customer or by Amazon MWAA.
+   * Whether the VPC endpoints configured for the environment are created and managed by the customer or by Amazon MWAA.
    *
    * @default - No endpoint management specified.
    */
@@ -142,7 +150,7 @@ export interface EnvironmentProps {
    *
    * @default - No tags are attached.
    */
-  readonly tags?: Tag[];
+  readonly tags?: { [key: string]: string };
   /**
    * CloudWatch log group that saves the task logs.
    *
@@ -155,6 +163,17 @@ export interface EnvironmentProps {
    * @default - No log group is used.
    */
   readonly webserverLogGroup?: logs.LogGroup;
+  /**
+   * The day and time of the week to start weekly maintenance updates of
+   * the environment in the following format: DAY:HH:MM.
+   *
+   * For example: TUE:03:30. A start time can be specified in 30 minute increments only.
+   *
+   * Supported input includes the following: MON|TUE|WED|THU|FRI|SAT|SUN:([01]\\d|2[0-3]):(00|30)
+   *
+   * @default - No window start is specified.
+   */
+  readonly weeklyMaintenanceWindowStart?: string;
   /**
    * CloudWatch log group that saves the worker logs.
    *
@@ -209,14 +228,6 @@ export enum LogLevel {
 }
 
 /**
- * Tags to attach to the environment resource.
- */
-export interface Tag {
-  readonly Key: string;
-  readonly Value: string;
-}
-
-/**
  * A new MWAA environment.
  */
 export class Environment extends Resource {
@@ -233,17 +244,11 @@ export class Environment extends Resource {
   public readonly maxWorkers: number;
   public readonly minWorkers: number;
   public readonly name: string;
-  public readonly pluginsVersion?: string;
-  public readonly requirementsS3Path?: string;
-  public readonly requirementsVersion?: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
   public readonly schedulerLogGroup?: logs.LogGroup;
   public readonly schedulers: number;
-  public readonly startupScriptS3Path?: string;
-  public readonly startupScriptVersion?: string;
   public readonly subnets: ec2.ISubnet[];
-  public readonly tags?: Tag[];
   public readonly taskLogGroup?: logs.LogGroup;
   public readonly webserverLogGroup?: logs.LogGroup;
   public readonly workerLogGroup?: logs.LogGroup;
@@ -263,17 +268,11 @@ export class Environment extends Resource {
     this.maxWorkers = props.maxWorkers ?? 1;
     this.minWorkers = props.minWorkers ?? 1;
     this.name = props.name;
-    this.pluginsVersion = props.pluginsVersion;
-    this.requirementsS3Path = props.requirementsS3Path;
-    this.requirementsVersion = props.requirementsVersion;
     this.role = props.role ?? this.createRole();
     this.schedulerLogGroup = props.schedulerLogGroup;
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
-    this.startupScriptS3Path = props.startupScriptS3Path;
-    this.startupScriptVersion = props.startupScriptVersion;
     this.subnets = props.subnets;
-    this.tags = props.tags;
     this.taskLogGroup = props.taskLogGroup;
     this.webserverLogGroup = props.webserverLogGroup;
     this.workerLogGroup = props.workerLogGroup;
@@ -322,6 +321,7 @@ export class Environment extends Resource {
     }
 
     new CfnEnvironment(this, 'Resource', {
+      airflowConfigurationOptions: props.airflowConfigurations,
       airflowVersion: this.airflowVersion,
       dagS3Path: this.dagS3Path,
       endpointManagement: this.endpointManagement,
@@ -336,15 +336,16 @@ export class Environment extends Resource {
         securityGroupIds: this.renderSecurityGroups(),
         subnetIds: this.renderSubnets(),
       },
-      pluginsS3ObjectVersion: this.pluginsVersion,
-      requirementsS3ObjectVersion: this.requirementsVersion,
-      requirementsS3Path: this.requirementsS3Path,
+      pluginsS3ObjectVersion: props.pluginsVersion,
+      requirementsS3ObjectVersion: props.requirementsVersion,
+      requirementsS3Path: props.requirementsS3Path,
       schedulers: this.schedulers,
       sourceBucketArn: this.bucket.bucketArn,
-      startupScriptS3ObjectVersion: this.startupScriptVersion,
-      startupScriptS3Path: this.startupScriptS3Path,
-      tags: this.tags,
+      startupScriptS3ObjectVersion: props.startupScriptVersion,
+      startupScriptS3Path: props.startupScriptS3Path,
+      tags: props.tags,
       webserverAccessMode: this.accessMode,
+      weeklyMaintenanceWindowStart: props.weeklyMaintenanceWindowStart,
     });
   }
 

@@ -65,19 +65,13 @@ describe('Environment', () => {
       expect(environment.maxWorkers).toBe(1);
       expect(environment.minWorkers).toBe(1);
       expect(environment.name).toBe('Airflow');
-      expect(environment.pluginsVersion).toBe(undefined);
-      expect(environment.requirementsS3Path).toBe(undefined);
-      expect(environment.requirementsVersion).toBe(undefined);
       expect(environment.role).toBeInstanceOf(iam.Role);
       expect(environment.securityGroups).toBeInstanceOf(Array);
       expect(environment.securityGroups[0]).toBeInstanceOf(ec2.SecurityGroup);
       expect(environment.schedulerLogGroup).toBe(undefined);
       expect(environment.schedulers).toBe(2);
-      expect(environment.startupScriptS3Path).toBe(undefined);
-      expect(environment.startupScriptVersion).toBe(undefined);
       expect(environment.subnets).toBeInstanceOf(Array);
       expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
-      expect(environment.tags).toBe(undefined);
       expect(environment.taskLogGroup).toBe(undefined);
       expect(environment.webserverLogGroup).toBe(undefined);
       expect(environment.workerLogGroup).toBe(undefined);
@@ -221,6 +215,7 @@ describe('Environment', () => {
     test('optional properties specified', () => {
       const environment = new mwaa.Environment(stack, 'Environment', {
         accessMode: mwaa.AccessMode.PRIVATE_ONLY,
+        airflowConfigurations: { 'core.default_timezone': 'utc' },
         airflowVersion: mwaa.AirflowVersion.V2_7_2,
         bucket,
         dagS3Path,
@@ -237,7 +232,8 @@ describe('Environment', () => {
         subnets,
         startupScriptS3Path: 'startup-path',
         startupScriptVersion: 'startup-version',
-        tags: [{ Key: 'key', Value: 'value' }],
+        tags: { key: 'value' },
+        weeklyMaintenanceWindowStart: 'TUE:03:30',
       });
 
       expect(environment.airflowVersion).toBe('2.7.2');
@@ -247,12 +243,6 @@ describe('Environment', () => {
       expect(environment.kmsKey).toBeInstanceOf(kms.Key);
       expect(environment.maxWorkers).toBe(5);
       expect(environment.minWorkers).toBe(2);
-      expect(environment.pluginsVersion).toBe('plugins-hash');
-      expect(environment.requirementsS3Path).toBe('requirements-path');
-      expect(environment.requirementsVersion).toBe('requirements-hash');
-      expect(environment.startupScriptS3Path).toBe('startup-path');
-      expect(environment.startupScriptVersion).toBe('startup-version');
-      expect(environment.tags).toStrictEqual([{ Key: 'key', Value: 'value' }]);
     });
 
     test('log groups specified', () => {
