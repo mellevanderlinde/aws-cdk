@@ -53,7 +53,7 @@ export interface EnvironmentProps {
   /**
    * Key to encrypt and decrypt data in the environment.
    *
-   * @default - No KMS key is used.
+   * @default - An AWS managed key is used.
    */
   readonly kmsKey?: kms.Key;
   /**
