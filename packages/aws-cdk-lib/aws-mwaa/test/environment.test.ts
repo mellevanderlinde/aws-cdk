@@ -236,6 +236,9 @@ describe('Environment', () => {
         weeklyMaintenanceWindowStart: 'TUE:03:30',
       });
 
+      const template = Template.fromStack(stack);
+      expect(template).toMatchSnapshot();
+
       expect(environment.airflowVersion).toBe('2.7.2');
       expect(environment.accessMode).toBe('PRIVATE_ONLY');
       expect(environment.endpointManagement).toBe('SERVICE');
