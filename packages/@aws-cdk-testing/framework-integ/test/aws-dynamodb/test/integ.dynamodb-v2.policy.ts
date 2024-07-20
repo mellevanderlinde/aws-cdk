@@ -13,7 +13,7 @@ class TestStack extends Stack {
     const docu = new iam.PolicyDocument({
       statements: [
         new iam.PolicyStatement({
-          actions: ['dynamodb:*'],
+          actions: ['dynamodb:Get*'],
           principals: [new iam.AccountRootPrincipal()],
           resources: ['*'],
         }),
@@ -31,6 +31,14 @@ class TestStack extends Stack {
     });
 
     table.grantReadData(new iam.AccountPrincipal('123456789012'));
+
+    table.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['dynamodb:List*'],
+        principals: [new iam.AccountRootPrincipal()],
+        resources: ['*'],
+      }),
+    );
   }
 }
 
@@ -38,4 +46,5 @@ const stack = new TestStack(app, 'ResourcePolicyTest-v2', { env: { region: 'eu-w
 
 new IntegTest(app, 'table-v2-resource-policy-integ-test', {
   testCases: [stack],
+  regions: ['eu-west-1'],
 });
