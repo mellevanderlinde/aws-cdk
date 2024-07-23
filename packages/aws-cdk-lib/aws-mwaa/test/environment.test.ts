@@ -241,8 +241,8 @@ describe('Environment', () => {
             Enabled: true,
             LogLevel: 'WARNING',
           },
-        }
-      })
+        },
+      });
     });
   });
 });
