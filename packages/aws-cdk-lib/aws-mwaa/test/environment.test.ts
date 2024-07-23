@@ -13,19 +13,19 @@ describe('Environment', () => {
     let stack: cdk.Stack;
     let bucket: s3.Bucket;
     let dagS3Path: string;
-    let vpc: ec2.Vpc;
-    let name: string;
+    let environmentName: string;
     let securityGroups: ec2.SecurityGroup[];
     let subnet1: ec2.Subnet;
     let subnet2: ec2.Subnet;
     let subnets: ec2.Subnet[];
+    let vpc: ec2.Vpc;
 
     beforeEach(() => {
       stack = new cdk.Stack();
       bucket = new s3.Bucket(stack, 'Bucket');
       dagS3Path = 'dags';
       vpc = new ec2.Vpc(stack, 'Vpc');
-      name = 'Airflow';
+      environmentName = 'Airflow';
       securityGroups = [new ec2.SecurityGroup(stack, 'SecurityGroup', { vpc })];
       subnet1 = new ec2.Subnet(stack, 'subnet1', {
         vpcId: vpc.vpcId,
@@ -44,7 +44,7 @@ describe('Environment', () => {
       const environment = new mwaa.Environment(stack, 'Environment', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         subnets,
       });
@@ -72,7 +72,7 @@ describe('Environment', () => {
       new mwaa.Environment(stack, 'Environment', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         role,
         securityGroups,
         subnets,
@@ -112,7 +112,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment1', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups: [],
         subnets,
       })).toThrow('Received 0 security groups, while between 1 and 5 are required');
@@ -120,7 +120,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment2', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups: [
           new ec2.SecurityGroup(stack, 'SecurityGroup1', { vpc }),
           new ec2.SecurityGroup(stack, 'SecurityGroup2', { vpc }),
@@ -137,7 +137,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment1', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         subnets: [],
       })).toThrow('Received 0 subnet(s), while 2 are required');
@@ -145,7 +145,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment2', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         subnets: [subnet1],
       })).toThrow('Received 1 subnet(s), while 2 are required');
@@ -153,7 +153,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment3', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         subnets: [
           subnet1, subnet2,
@@ -170,7 +170,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment2', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         schedulers: 1,
         subnets,
@@ -179,7 +179,7 @@ describe('Environment', () => {
       expect(() => new mwaa.Environment(stack, 'Environment3', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         schedulers: 6,
         subnets,
@@ -198,7 +198,7 @@ describe('Environment', () => {
         kmsKey: new kms.Key(stack, 'Key'),
         maxWorkers: 5,
         minWorkers: 2,
-        name,
+        environmentName,
         pluginsVersion: 'plugins-hash',
         requirementsS3Path: 'requirements-path',
         requirementsVersion: 'requirements-hash',
@@ -221,7 +221,7 @@ describe('Environment', () => {
       new mwaa.Environment(stack, 'Environment', {
         bucket,
         dagS3Path,
-        name,
+        environmentName,
         securityGroups,
         subnets,
         dagProcessingLogGroup: new logs.LogGroup(stack, 'DagLogs'),

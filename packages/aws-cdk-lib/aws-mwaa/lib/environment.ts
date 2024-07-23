@@ -66,6 +66,11 @@ export interface EnvironmentProps {
   readonly environmentClass?: EnvironmentClass;
 
   /**
+   * Name of the environment.
+   */
+  readonly environmentName: string;
+
+  /**
    * Key to encrypt and decrypt data in the environment.
    *
    * @default - An AWS managed key is used.
@@ -92,11 +97,6 @@ export interface EnvironmentProps {
    * @default - 1 worker is used.
    */
   readonly minWorkers?: number;
-
-  /**
-   * Name of the environment.
-   */
-  readonly name: string;
 
   /**
    * The object version of the plugins.zip file in the S3 bucket.
@@ -408,7 +408,7 @@ export class Environment extends Resource implements IEnvironment {
     this.bucket = props.bucket;
     this.environmentClass = props.environmentClass ?? EnvironmentClass.MW1_SMALL;
     this.logLevel = props.logLevel ?? LogLevel.INFO;
-    this.environmentName = props.name;
+    this.environmentName = props.environmentName;
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
@@ -457,7 +457,7 @@ export class Environment extends Resource implements IEnvironment {
       };
     }
 
-    const environment = new CfnEnvironment(this, 'Resource', {
+    const resource: CfnEnvironment = new CfnEnvironment(this, 'Resource', {
       airflowConfigurationOptions: props.airflowConfigurations,
       airflowVersion: this.airflowVersion,
       dagS3Path: props.dagS3Path,
@@ -485,7 +485,7 @@ export class Environment extends Resource implements IEnvironment {
       weeklyMaintenanceWindowStart: props.weeklyMaintenanceWindowStart,
     });
 
-    this.environmentArn = environment.attrArn;
+    this.environmentArn = resource.attrArn;
   }
 
   private renderSubnets(): string[] {
