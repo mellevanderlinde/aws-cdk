@@ -637,7 +637,7 @@ export class TableV2 extends TableBaseV2 {
         ? props.readCapacity._renderReadCapacity()
         : this.readProvisioning,
       tags: props.tags,
-      resourcePolicy: Lazy.any({ produce: () => this.resourcePolicy ? { policyDocument: this.resourcePolicy } : undefined }),
+      resourcePolicy: this.resourcePolicy ? { policyDocument: this.resourcePolicy } : undefined,
     };
   }
 
