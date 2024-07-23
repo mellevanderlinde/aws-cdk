@@ -333,17 +333,23 @@ export interface IEnvironment extends IResource {
   readonly airflowVersion: string;
 
   /**
-   * The environment class type.
-   */
-  readonly environmentClass: string;
-
-  /**
    * ARN of the environment.
+   *
+   * @attribute
    */
   readonly environmentArn: string;
 
   /**
+   * The environment class type.
+   *
+   * @attribute
+   */
+  readonly environmentClass: string;
+
+  /**
    * Name of the environment.
+   *
+   * @attribute
    */
   readonly environmentName: string;
 
