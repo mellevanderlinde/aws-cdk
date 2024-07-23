@@ -28,7 +28,7 @@ export interface EnvironmentProps {
   readonly airflowConfigurations?: { [key: string]: string };
 
   /**
-   * Airflow version to be used in the environment.
+   * Airflow version used by the environment.
    *
    * @default - Airflow version 2.8.1 (latest) will be used.
    */
@@ -236,17 +236,17 @@ export enum AirflowVersion {
    * Version 2.5.1
    */
   V2_5_1 = '2.5.1',
-  
+
   /**
    * Version 2.6.3
    */
   V2_6_3 = '2.6.3',
-  
+
   /**
    * Version 2.7.2
    */
   V2_7_2 = '2.7.2',
-  
+
   /**
    * Version 2.8.1
    */
@@ -330,14 +330,34 @@ export enum LogLevel {
  */
 export class Environment extends Resource implements IEnvironment {
 
+  /**
+   * Airflow version used by the environment.
+   */
   public readonly airflowVersion: string;
+
   private readonly bucket: s3.IBucket;
+
+  /**
+   * The environment class type.
+   */
   public readonly environmentClass: string;
+
   private readonly logLevel: LogLevel;
+
+  /**
+   * Name of the environment.
+   */
   public readonly environmentName: string;
+
+  /**
+   * Environment execution role.
+   */
   public readonly role: iam.IRole;
+
   private readonly schedulers: number;
+
   private readonly securityGroups: ec2.ISecurityGroup[];
+
   private readonly subnets: ec2.ISubnet[];
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
@@ -527,8 +547,23 @@ export class Environment extends Resource implements IEnvironment {
  * An MWAA Environment.
  */
 export interface IEnvironment extends IResource {
+  /**
+   * Airflow version used by the environment.
+   */
   readonly airflowVersion: string;
+
+  /**
+   * The environment class type.
+   */
   readonly environmentClass: string;
+
+  /**
+   * Name of the environment.
+   */
   readonly environmentName: string;
+
+  /**
+   * Environment execution role.
+   */
   readonly role: iam.IRole;
 }
