@@ -29,7 +29,7 @@ export interface EnvironmentProps {
   /**
    * Airflow version to be used in the environment.
    *
-   * @default - Airflow version 2.8.1 (latest available in MWAA) will be used.
+   * @default - Airflow version 2.8.1 (latest) will be used.
    */
   readonly airflowVersion?: AirflowVersion;
   /**
