@@ -41,7 +41,7 @@ export interface EnvironmentProps {
    *
    * @default - No log group is used.
    */
-  readonly dagProcessingLogGroup?: logs.LogGroup;
+  readonly dagProcessingLogGroup?: logs.ILogGroup;
   /**
    * The relative path to the DAGs folder in the S3 bucket.
    */
@@ -63,7 +63,7 @@ export interface EnvironmentProps {
    *
    * @default - An AWS managed key is used.
    */
-  readonly kmsKey?: kms.Key;
+  readonly kmsKey?: kms.IKey;
   /**
    * Logging level for the Airflow logs in CloudWatch.
    *
@@ -122,7 +122,7 @@ export interface EnvironmentProps {
    *
    * @default - No log group is used.
    */
-  readonly schedulerLogGroup?: logs.LogGroup;
+  readonly schedulerLogGroup?: logs.ILogGroup;
   /**
    * Number of schedulers to run in the environment. Accepts between 2 to 5.
    *
@@ -156,13 +156,13 @@ export interface EnvironmentProps {
    *
    * @default - No log group is used.
    */
-  readonly taskLogGroup?: logs.LogGroup;
+  readonly taskLogGroup?: logs.ILogGroup;
   /**
    * CloudWatch log group that saves the webserver logs.
    *
    * @default - No log group is used.
    */
-  readonly webserverLogGroup?: logs.LogGroup;
+  readonly webserverLogGroup?: logs.ILogGroup;
   /**
    * The day and time of the week to start weekly maintenance updates of
    * the environment in the following format: DAY:HH:MM.
@@ -179,7 +179,7 @@ export interface EnvironmentProps {
    *
    * @default - No log group is used.
    */
-  readonly workerLogGroup?: logs.LogGroup;
+  readonly workerLogGroup?: logs.ILogGroup;
 }
 
 /**
@@ -235,23 +235,23 @@ export class Environment extends Resource {
   public readonly accessMode?: AccessMode;
   public readonly airflowVersion: string;
   public readonly bucket: s3.IBucket;
-  public readonly dagProcessingLogGroup?: logs.LogGroup;
+  public readonly dagProcessingLogGroup?: logs.ILogGroup;
   public readonly dagS3Path: string;
   public readonly endpointManagement?: string;
   public readonly environmentClass: string;
-  public readonly kmsKey?: kms.Key;
+  public readonly kmsKey?: kms.IKey;
   public readonly logLevel: LogLevel;
   public readonly maxWorkers: number;
   public readonly minWorkers: number;
   public readonly name: string;
   public readonly role: iam.IRole;
   public readonly securityGroups: ec2.ISecurityGroup[];
-  public readonly schedulerLogGroup?: logs.LogGroup;
+  public readonly schedulerLogGroup?: logs.ILogGroup;
   public readonly schedulers: number;
   public readonly subnets: ec2.ISubnet[];
-  public readonly taskLogGroup?: logs.LogGroup;
-  public readonly webserverLogGroup?: logs.LogGroup;
-  public readonly workerLogGroup?: logs.LogGroup;
+  public readonly taskLogGroup?: logs.ILogGroup;
+  public readonly webserverLogGroup?: logs.ILogGroup;
+  public readonly workerLogGroup?: logs.ILogGroup;
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
