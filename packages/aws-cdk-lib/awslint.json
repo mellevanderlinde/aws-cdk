@@ -191,6 +191,7 @@
     "from-signature:aws-cdk-lib.aws_iam.Role.fromRoleArn",
     "from-signature:aws-cdk-lib.aws_iam.Role.fromRoleName",
     "from-method:aws-cdk-lib.aws_lambda.FunctionUrl",
+    "from-method:aws-cdk-lib.aws_mwaa.Environment",
     "from-signature:aws-cdk-lib.aws_secretsmanager.Secret.fromSecretNameV2.params[2]",
     "attribute-tag:aws-cdk-lib.aws_apigateway.RequestAuthorizer.authorizerArn",
     "attribute-tag:aws-cdk-lib.aws_apigateway.TokenAuthorizer.authorizerArn",
