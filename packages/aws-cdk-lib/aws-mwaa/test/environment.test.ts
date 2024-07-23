@@ -218,7 +218,7 @@ describe('Environment', () => {
     });
 
     test('log groups specified', () => {
-      const environment = new mwaa.Environment(stack, 'Environment', {
+      new mwaa.Environment(stack, 'Environment', {
         bucket,
         dagS3Path,
         name,
@@ -228,6 +228,21 @@ describe('Environment', () => {
         webserverLogGroup: new logs.LogGroup(stack, 'WebserverLogs'),
         logLevel: mwaa.LogLevel.WARNING,
       });
+
+      Template.fromStack(stack).hasResourceProperties('AWS::MWAA::Environment', {
+        LoggingConfiguration: {
+          DagProcessingLogs: {
+            CloudWatchLogGroupArn: { 'Fn::GetAtt': ['DagLogsF514B8CE', 'Arn'] },
+            Enabled: true,
+            LogLevel: 'WARNING',
+          },
+          WebserverLogs: {
+            CloudWatchLogGroupArn: { 'Fn::GetAtt': ['WebserverLogs19366768', 'Arn'] },
+            Enabled: true,
+            LogLevel: 'WARNING',
+          },
+        }
+      })
     });
   });
 });
