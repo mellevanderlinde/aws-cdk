@@ -18,6 +18,7 @@ export interface EnvironmentProps {
    * @default - No web server access mode defined.
    */
   readonly accessMode?: AccessMode;
+
   /**
    * Key-value pairs of the Airflow configuration options for the environment.
    * To learn more, see https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-env-variables.html.
@@ -25,38 +26,45 @@ export interface EnvironmentProps {
    * @default - No configurations are specified.
    */
   readonly airflowConfigurations?: { [key: string]: string };
+
   /**
    * Airflow version to be used in the environment.
    *
    * @default - Airflow version 2.8.1 (latest) will be used.
    */
   readonly airflowVersion?: AirflowVersion;
+
   /**
    * S3 bucket that contains Airflow DAGs.
    */
   readonly bucket: s3.IBucket;
+
   /**
    * CloudWatch log group that saves the DAG processing logs.
    *
    * @default - No log group is used.
    */
   readonly dagProcessingLogGroup?: logs.ILogGroup;
+
   /**
    * The relative path to the DAGs folder in the S3 bucket.
    */
   readonly dagS3Path: string;
+
   /**
    * Whether the VPC endpoints configured for the environment are created and managed by the customer or by Amazon MWAA.
    *
    * @default - No endpoint management specified.
    */
   readonly endpointManagement?: EndpointManagement;
+
   /**
    * The environment class type.
    *
    * @default - mw1.small is used.
    */
   readonly environmentClass?: EnvironmentClass;
+
   /**
    * Key to encrypt and decrypt data in the environment.
    *
@@ -69,40 +77,47 @@ export interface EnvironmentProps {
    * @default - Logging at INFO level.
    */
   readonly logLevel?: LogLevel;
+
   /**
    * Maximum number of workers to run in the environment.
    *
    * @default - 1 worker is used.
    */
   readonly maxWorkers?: number;
+
   /**
    * Minimum number of workers to run in the environment.
    *
    * @default - 1 worker is used.
    */
   readonly minWorkers?: number;
+
   /**
    * Name of the environment.
    */
-  readonly name: string;
+  readonly environmentName: string;
+
   /**
    * The object version of the plugins.zip file in the S3 bucket.
    *
    * @default - No version is provided.
    */
   readonly pluginsVersion?: string;
+
   /**
    * The relative path to the requirements.txt file in the S3 bucket.
    *
    * @default - No path is provided.
    */
   readonly requirementsS3Path?: string;
+
   /**
    * The object version of the requirements.txt file in the S3 bucket.
    *
    * @default - No version is provided.
    */
   readonly requirementsVersion?: string;
+
   /**
    * Environment execution role.
    *
@@ -112,56 +127,66 @@ export interface EnvironmentProps {
    * @default - A new role will be created, having the default policies attached.
    */
   readonly role?: iam.IRole;
+
   /**
    * Security groups to attach to the environment. Between 1 and 5 security groups must be provided.
    */
   readonly securityGroups: ec2.ISecurityGroup[];
+
   /**
    * CloudWatch log group that saves the scheduler logs.
    *
    * @default - No log group is used.
    */
   readonly schedulerLogGroup?: logs.ILogGroup;
+
   /**
    * Number of schedulers to run in the environment. Accepts between 2 to 5.
    *
    * @default - 2 schedulers are used.
    */
   readonly schedulers?: number;
+
   /**
    * The relative path to the startup shell script file in the S3 bucket.
    *
    * @default - No path is provided.
    */
   readonly startupScriptS3Path?: string;
+
   /**
    * The object version of the startup shell script file in the S3 bucket.
    *
    * @default - No version is provided.
    */
   readonly startupScriptVersion?: string;
+
   /**
    * Two subnets to attach to the environment.
    */
   readonly subnets: ec2.ISubnet[];
+
   /**
    * Tags to attach to the environment resource.
    *
    * @default - No tags are attached.
    */
   readonly tags?: { [key: string]: string };
+
   /**
    * CloudWatch log group that saves the task logs.
    *
    * @default - No log group is used.
    */
   readonly taskLogGroup?: logs.ILogGroup;
+
   /**
    * CloudWatch log group that saves the webserver logs.
    *
    * @default - No log group is used.
    */
   readonly webserverLogGroup?: logs.ILogGroup;
+
   /**
    * The day and time of the week to start weekly maintenance updates of
    * the environment in the following format: DAY:HH:MM.
@@ -173,6 +198,7 @@ export interface EnvironmentProps {
    * @default - No window start is specified.
    */
   readonly weeklyMaintenanceWindowStart?: string;
+
   /**
    * CloudWatch log group that saves the worker logs.
    *
@@ -204,7 +230,14 @@ export enum AirflowVersion {
  * Create and manage the VPC endpoints by either the customer or MWAA.
  */
 export enum EndpointManagement {
+  /**
+   * Amazon MWAA will create and manage the required VPC endpoints in the VPC.
+   */
   CUSTOMER = 'CUSTOMER',
+
+  /**
+   * The customer will create and manage the VPC endpoints in the VPC.
+   */
   SERVICE = 'SERVICE',
 }
 
@@ -212,30 +245,66 @@ export enum EndpointManagement {
  * The environment class.
  */
 export enum EnvironmentClass {
+  /**
+   * mw1.small
+   */
   MW1_SMALL = 'mw1.small',
+
+  /**
+   * mw1.medium
+   */
   MW1_MEDIUM = 'mw1.medium',
+
+  /**
+   * mw1.large
+   */
   MW1_LARGE = 'mw1.large',
+
+  /**
+   * mw1.xlarge
+   */
   MW1_XLARGE = 'mw1.xlarge',
+
+  /**
+   * mw1.2xlarge
+   */
   MW1_2XLARGE = 'mw1.2xlarge',
 }
 
 export enum LogLevel {
+  /**
+   * Logging at INFO level.
+   */
   INFO = 'INFO',
+
+  /**
+   * Logging at WARNING level.
+   */
   WARNING = 'WARNING',
+
+  /**
+   * Logging at ERROR level.
+   */
   ERROR = 'ERROR',
+
+  /**
+   * Logging at CRITICAL level.
+   */
   CRITICAL = 'CRITICAL',
 }
 
 /**
  * A new MWAA environment.
+ *
+ * @resource AWS::MWAA::Environment
  */
 export class Environment extends Resource implements IEnvironment {
-  
-  public readonly airflowVersion: AirflowVersion;
+
+  public readonly airflowVersion: string;
   private readonly bucket: s3.IBucket;
-  public readonly environmentClass: EnvironmentClass;
+  public readonly environmentClass: string;
   private readonly logLevel: LogLevel;
-  public readonly name: string;
+  public readonly environmentName: string;
   public readonly role: iam.IRole;
   private readonly schedulers: number;
   private readonly securityGroups: ec2.ISecurityGroup[];
@@ -248,7 +317,7 @@ export class Environment extends Resource implements IEnvironment {
     this.bucket = props.bucket;
     this.environmentClass = props.environmentClass ?? EnvironmentClass.MW1_SMALL;
     this.logLevel = props.logLevel ?? LogLevel.INFO;
-    this.name = props.name;
+    this.environmentName = props.environmentName;
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
@@ -308,7 +377,7 @@ export class Environment extends Resource implements IEnvironment {
       loggingConfiguration: loggingConfiguration,
       maxWorkers: props.maxWorkers ?? 1,
       minWorkers: props.minWorkers ?? 1,
-      name: this.name,
+      name: this.environmentName,
       networkConfiguration: {
         securityGroupIds: this.renderSecurityGroups(),
         subnetIds: this.renderSubnets(),
@@ -336,7 +405,7 @@ export class Environment extends Resource implements IEnvironment {
 
   private createRole(): iam.Role {
     const role = new iam.Role(this, 'ExecutionRole', {
-      roleName: `AmazonMWAA-${this.name}-ExecutionRole`,
+      roleName: `AmazonMWAA-${this.environmentName}-ExecutionRole`,
       assumedBy: new iam.CompositePrincipal(
         new iam.ServicePrincipal('airflow-env.amazonaws.com'),
         new iam.ServicePrincipal('airflow.amazonaws.com'),
@@ -348,7 +417,7 @@ export class Environment extends Resource implements IEnvironment {
       resources: [this.stack.formatArn({
         service: 'airflow',
         resource: 'environment',
-        resourceName: this.name,
+        resourceName: this.environmentName,
       })],
     }));
 
@@ -376,7 +445,7 @@ export class Environment extends Resource implements IEnvironment {
       resources: [this.stack.formatArn({
         service: 'logs',
         resource: 'log-group',
-        resourceName: `airflow-${this.name}-*`,
+        resourceName: `airflow-${this.environmentName}-*`,
       })],
     }));
 
@@ -424,9 +493,12 @@ export class Environment extends Resource implements IEnvironment {
   }
 }
 
+/**
+ * An MWAA Environment.
+ */
 export interface IEnvironment extends IResource {
-   readonly airflowVersion: string;
-   readonly environmentClass: string;
-   readonly name: string;
-   readonly role: iam.IRole;
+  readonly airflowVersion: string;
+  readonly environmentClass: string;
+  readonly environmentName: string;
+  readonly role: iam.IRole;
 }
