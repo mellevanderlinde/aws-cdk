@@ -5,8 +5,7 @@ import * as iam from '../../aws-iam';
 import * as kms from '../../aws-kms';
 import * as logs from '../../aws-logs';
 import * as s3 from '../../aws-s3';
-import { IBucket } from '../../aws-s3/lib/bucket';
-import { Resource } from '../../core';
+import { IResource, Resource } from '../../core';
 
 /**
  * Properties for a new MWAA Environment.
@@ -35,7 +34,7 @@ export interface EnvironmentProps {
   /**
    * S3 bucket that contains Airflow DAGs.
    */
-  readonly bucket: IBucket;
+  readonly bucket: s3.IBucket;
   /**
    * CloudWatch log group that saves the DAG processing logs.
    *
@@ -230,52 +229,30 @@ export enum LogLevel {
 /**
  * A new MWAA environment.
  */
-export class Environment extends Resource {
-
-  public readonly accessMode?: AccessMode;
-  public readonly airflowVersion: string;
-  public readonly bucket: s3.IBucket;
-  public readonly dagProcessingLogGroup?: logs.ILogGroup;
-  public readonly dagS3Path: string;
-  public readonly endpointManagement?: string;
-  public readonly environmentClass: string;
-  public readonly kmsKey?: kms.IKey;
-  public readonly logLevel: LogLevel;
-  public readonly maxWorkers: number;
-  public readonly minWorkers: number;
+export class Environment extends Resource implements IEnvironment {
+  
+  public readonly airflowVersion: AirflowVersion;
+  private readonly bucket: s3.IBucket;
+  public readonly environmentClass: EnvironmentClass;
+  private readonly logLevel: LogLevel;
   public readonly name: string;
   public readonly role: iam.IRole;
-  public readonly securityGroups: ec2.ISecurityGroup[];
-  public readonly schedulerLogGroup?: logs.ILogGroup;
-  public readonly schedulers: number;
-  public readonly subnets: ec2.ISubnet[];
-  public readonly taskLogGroup?: logs.ILogGroup;
-  public readonly webserverLogGroup?: logs.ILogGroup;
-  public readonly workerLogGroup?: logs.ILogGroup;
+  private readonly schedulers: number;
+  private readonly securityGroups: ec2.ISecurityGroup[];
+  private readonly subnets: ec2.ISubnet[];
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id);
 
-    this.accessMode = props.accessMode;
     this.airflowVersion = props.airflowVersion ?? AirflowVersion.V2_8_1;
     this.bucket = props.bucket;
-    this.dagProcessingLogGroup = props.dagProcessingLogGroup;
-    this.dagS3Path = props.dagS3Path;
-    this.endpointManagement = props.endpointManagement;
     this.environmentClass = props.environmentClass ?? EnvironmentClass.MW1_SMALL;
-    this.kmsKey = props.kmsKey;
     this.logLevel = props.logLevel ?? LogLevel.INFO;
-    this.maxWorkers = props.maxWorkers ?? 1;
-    this.minWorkers = props.minWorkers ?? 1;
     this.name = props.name;
     this.role = props.role ?? this.createRole();
-    this.schedulerLogGroup = props.schedulerLogGroup;
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
     this.subnets = props.subnets;
-    this.taskLogGroup = props.taskLogGroup;
-    this.webserverLogGroup = props.webserverLogGroup;
-    this.workerLogGroup = props.workerLogGroup;
 
     if (this.securityGroups.length < 1 || this.securityGroups.length > 5) {
       throw new Error(`Received ${this.securityGroups.length} security groups, while between 1 and 5 are required`);
@@ -290,31 +267,31 @@ export class Environment extends Resource {
     }
 
     let loggingConfiguration: CfnEnvironment.LoggingConfigurationProperty | undefined = undefined;
-    if (this.dagProcessingLogGroup || this.schedulerLogGroup || this.taskLogGroup || this.webserverLogGroup || this.workerLogGroup) {
+    if (props.dagProcessingLogGroup || props.schedulerLogGroup || props.taskLogGroup || props.webserverLogGroup || props.workerLogGroup) {
       loggingConfiguration = {
         dagProcessingLogs: {
-          cloudWatchLogGroupArn: this.dagProcessingLogGroup?.logGroupArn,
-          enabled: this.dagProcessingLogGroup?.logGroupArn ? true: undefined,
+          cloudWatchLogGroupArn: props.dagProcessingLogGroup?.logGroupArn,
+          enabled: props.dagProcessingLogGroup?.logGroupArn ? true: undefined,
           logLevel: this.logLevel,
         },
         schedulerLogs: {
-          cloudWatchLogGroupArn: this.schedulerLogGroup?.logGroupArn,
-          enabled: this.schedulerLogGroup?.logGroupArn ? true: undefined,
+          cloudWatchLogGroupArn: props.schedulerLogGroup?.logGroupArn,
+          enabled: props.schedulerLogGroup?.logGroupArn ? true: undefined,
           logLevel: this.logLevel,
         },
         taskLogs: {
-          cloudWatchLogGroupArn: this.taskLogGroup?.logGroupArn,
-          enabled: this.taskLogGroup?.logGroupArn ? true: undefined,
+          cloudWatchLogGroupArn: props.taskLogGroup?.logGroupArn,
+          enabled: props.taskLogGroup?.logGroupArn ? true: undefined,
           logLevel: this.logLevel,
         },
         webserverLogs: {
-          cloudWatchLogGroupArn: this.webserverLogGroup?.logGroupArn,
-          enabled: this.webserverLogGroup?.logGroupArn ? true: undefined,
+          cloudWatchLogGroupArn: props.webserverLogGroup?.logGroupArn,
+          enabled: props.webserverLogGroup?.logGroupArn ? true: undefined,
           logLevel: this.logLevel,
         },
         workerLogs: {
-          cloudWatchLogGroupArn: this.workerLogGroup?.logGroupArn,
-          enabled: this.workerLogGroup?.logGroupArn ? true: undefined,
+          cloudWatchLogGroupArn: props.workerLogGroup?.logGroupArn,
+          enabled: props.workerLogGroup?.logGroupArn ? true: undefined,
           logLevel: this.logLevel,
         },
       };
@@ -323,14 +300,14 @@ export class Environment extends Resource {
     new CfnEnvironment(this, 'Resource', {
       airflowConfigurationOptions: props.airflowConfigurations,
       airflowVersion: this.airflowVersion,
-      dagS3Path: this.dagS3Path,
-      endpointManagement: this.endpointManagement,
+      dagS3Path: props.dagS3Path,
+      endpointManagement: props.endpointManagement,
       environmentClass: this.environmentClass,
       executionRoleArn: this.role.roleArn,
-      kmsKey: this.kmsKey?.keyArn,
+      kmsKey: props.kmsKey?.keyArn,
       loggingConfiguration: loggingConfiguration,
-      maxWorkers: this.maxWorkers,
-      minWorkers: this.minWorkers,
+      maxWorkers: props.maxWorkers ?? 1,
+      minWorkers: props.minWorkers ?? 1,
       name: this.name,
       networkConfiguration: {
         securityGroupIds: this.renderSecurityGroups(),
@@ -344,7 +321,7 @@ export class Environment extends Resource {
       startupScriptS3ObjectVersion: props.startupScriptVersion,
       startupScriptS3Path: props.startupScriptS3Path,
       tags: props.tags,
-      webserverAccessMode: this.accessMode,
+      webserverAccessMode: props.accessMode,
       weeklyMaintenanceWindowStart: props.weeklyMaintenanceWindowStart,
     });
   }
@@ -445,4 +422,11 @@ export class Environment extends Resource {
 
     return role;
   }
+}
+
+export interface IEnvironment extends IResource {
+   readonly airflowVersion: string;
+   readonly environmentClass: string;
+   readonly name: string;
+   readonly role: iam.IRole;
 }

@@ -53,28 +53,10 @@ describe('Environment', () => {
       template.resourceCountIs('AWS::MWAA::Environment', 1);
       expect(template).toMatchSnapshot();
 
-      expect(environment.accessMode).toBe(undefined);
       expect(environment.airflowVersion).toBe('2.8.1');
-      expect(environment.bucket).toBeInstanceOf(s3.Bucket);
-      expect(environment.dagProcessingLogGroup).toBe(undefined);
-      expect(environment.dagS3Path).toBe('dags');
-      expect(environment.endpointManagement).toBe(undefined);
       expect(environment.environmentClass).toBe('mw1.small');
-      expect(environment.kmsKey).toBe(undefined);
-      expect(environment.logLevel).toBe('INFO');
-      expect(environment.maxWorkers).toBe(1);
-      expect(environment.minWorkers).toBe(1);
       expect(environment.name).toBe('Airflow');
       expect(environment.role).toBeInstanceOf(iam.Role);
-      expect(environment.securityGroups).toBeInstanceOf(Array);
-      expect(environment.securityGroups[0]).toBeInstanceOf(ec2.SecurityGroup);
-      expect(environment.schedulerLogGroup).toBe(undefined);
-      expect(environment.schedulers).toBe(2);
-      expect(environment.subnets).toBeInstanceOf(Array);
-      expect(environment.subnets[0]).toBeInstanceOf(ec2.Subnet);
-      expect(environment.taskLogGroup).toBe(undefined);
-      expect(environment.webserverLogGroup).toBe(undefined);
-      expect(environment.workerLogGroup).toBe(undefined);
     });
 
     test('execution role attached', () => {
@@ -184,15 +166,6 @@ describe('Environment', () => {
     });
 
     test('schedulers specified', () => {
-      expect(new mwaa.Environment(stack, 'Environment1', {
-        bucket,
-        dagS3Path,
-        name,
-        securityGroups,
-        schedulers: 4,
-        subnets,
-      }).schedulers).toBe(4);
-
       expect(() => new mwaa.Environment(stack, 'Environment2', {
         bucket,
         dagS3Path,
@@ -240,12 +213,7 @@ describe('Environment', () => {
       expect(template).toMatchSnapshot();
 
       expect(environment.airflowVersion).toBe('2.7.2');
-      expect(environment.accessMode).toBe('PRIVATE_ONLY');
-      expect(environment.endpointManagement).toBe('SERVICE');
       expect(environment.environmentClass).toBe('mw1.large');
-      expect(environment.kmsKey).toBeInstanceOf(kms.Key);
-      expect(environment.maxWorkers).toBe(5);
-      expect(environment.minWorkers).toBe(2);
     });
 
     test('log groups specified', () => {
@@ -259,13 +227,6 @@ describe('Environment', () => {
         webserverLogGroup: new logs.LogGroup(stack, 'WebserverLogs'),
         logLevel: mwaa.LogLevel.WARNING,
       });
-
-      expect(environment.dagProcessingLogGroup).toBeInstanceOf(logs.LogGroup);
-      expect(environment.webserverLogGroup).toBeInstanceOf(logs.LogGroup);
-      expect(environment.schedulerLogGroup).toBe(undefined);
-      expect(environment.taskLogGroup).toBe(undefined);
-      expect(environment.workerLogGroup).toBe(undefined);
-      expect(environment.logLevel).toBe('WARNING');
     });
   });
 });
