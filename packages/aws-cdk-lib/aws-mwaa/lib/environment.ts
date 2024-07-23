@@ -368,21 +368,21 @@ export class Environment extends Resource implements IEnvironment {
   private readonly bucket: s3.IBucket;
 
   /**
-   * The environment class type.
-   */
-  public readonly environmentClass: string;
-
-  private readonly logLevel: LogLevel;
-
-  /**
    * ARN of the environment.
    */
   public readonly environmentArn: string;
 
   /**
+   * The environment class type.
+   */
+  public readonly environmentClass: string;
+
+  /**
    * Name of the environment.
    */
   public readonly environmentName: string;
+
+  private readonly logLevel: LogLevel;
 
   /**
    * Environment execution role.
