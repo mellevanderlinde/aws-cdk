@@ -71,6 +71,7 @@ export interface EnvironmentProps {
    * @default - An AWS managed key is used.
    */
   readonly kmsKey?: kms.IKey;
+
   /**
    * Logging level for the Airflow logs in CloudWatch.
    *
@@ -211,18 +212,44 @@ export interface EnvironmentProps {
  * The Apache Airflow Web server access mode.
  */
 export enum AccessMode {
+  /**
+   * Network traffic is privately routed within the VPC.
+   */
   PRIVATE_ONLY = 'PRIVATE_ONLY',
+
+  /**
+   * Network traffic is publicly routed over the Internet.
+   */
   PUBLIC_ONLY = 'PUBLIC_ONLY',
 }
 
 /**
- * The supported Airflow version.
+ * The Airflow version.
  */
 export enum AirflowVersion {
+  /**
+   * Version 2.4.3
+   */
   V2_4_3 = '2.4.3',
+
+  /**
+   * Version 2.5.1
+   */
   V2_5_1 = '2.5.1',
+  
+  /**
+   * Version 2.6.3
+   */
   V2_6_3 = '2.6.3',
+  
+  /**
+   * Version 2.7.2
+   */
   V2_7_2 = '2.7.2',
+  
+  /**
+   * Version 2.8.1
+   */
   V2_8_1 = '2.8.1',
 }
 
@@ -271,6 +298,9 @@ export enum EnvironmentClass {
   MW1_2XLARGE = 'mw1.2xlarge',
 }
 
+/**
+ * Logging level for the Airflow logs in CloudWatch.
+ */
 export enum LogLevel {
   /**
    * Logging at INFO level.
