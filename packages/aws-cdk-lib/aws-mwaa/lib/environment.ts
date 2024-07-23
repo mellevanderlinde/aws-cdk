@@ -96,7 +96,7 @@ export interface EnvironmentProps {
   /**
    * Name of the environment.
    */
-  readonly environmentName: string;
+  readonly name: string;
 
   /**
    * The object version of the plugins.zip file in the S3 bucket.
@@ -324,6 +324,36 @@ export enum LogLevel {
 }
 
 /**
+ * An MWAA Environment.
+ */
+export interface IEnvironment extends IResource {
+  /**
+   * Airflow version used by the environment.
+   */
+  readonly airflowVersion: string;
+
+  /**
+   * The environment class type.
+   */
+  readonly environmentClass: string;
+
+  /**
+   * ARN of the environment.
+   */
+  readonly environmentArn: string;
+
+  /**
+   * Name of the environment.
+   */
+  readonly environmentName: string;
+
+  /**
+   * Environment execution role.
+   */
+  readonly role: iam.IRole;
+}
+
+/**
  * A new MWAA environment.
  *
  * @resource AWS::MWAA::Environment
@@ -343,6 +373,11 @@ export class Environment extends Resource implements IEnvironment {
   public readonly environmentClass: string;
 
   private readonly logLevel: LogLevel;
+
+  /**
+   * ARN of the environment.
+   */
+  public readonly environmentArn: string;
 
   /**
    * Name of the environment.
@@ -367,7 +402,7 @@ export class Environment extends Resource implements IEnvironment {
     this.bucket = props.bucket;
     this.environmentClass = props.environmentClass ?? EnvironmentClass.MW1_SMALL;
     this.logLevel = props.logLevel ?? LogLevel.INFO;
-    this.environmentName = props.environmentName;
+    this.environmentName = props.name;
     this.role = props.role ?? this.createRole();
     this.schedulers = props.schedulers ?? 2;
     this.securityGroups = props.securityGroups;
@@ -416,7 +451,7 @@ export class Environment extends Resource implements IEnvironment {
       };
     }
 
-    new CfnEnvironment(this, 'Resource', {
+    const environment = new CfnEnvironment(this, 'Resource', {
       airflowConfigurationOptions: props.airflowConfigurations,
       airflowVersion: this.airflowVersion,
       dagS3Path: props.dagS3Path,
@@ -443,6 +478,8 @@ export class Environment extends Resource implements IEnvironment {
       webserverAccessMode: props.accessMode,
       weeklyMaintenanceWindowStart: props.weeklyMaintenanceWindowStart,
     });
+
+    this.environmentArn = environment.attrArn;
   }
 
   private renderSubnets(): string[] {
@@ -541,29 +578,4 @@ export class Environment extends Resource implements IEnvironment {
 
     return role;
   }
-}
-
-/**
- * An MWAA Environment.
- */
-export interface IEnvironment extends IResource {
-  /**
-   * Airflow version used by the environment.
-   */
-  readonly airflowVersion: string;
-
-  /**
-   * The environment class type.
-   */
-  readonly environmentClass: string;
-
-  /**
-   * Name of the environment.
-   */
-  readonly environmentName: string;
-
-  /**
-   * Environment execution role.
-   */
-  readonly role: iam.IRole;
 }

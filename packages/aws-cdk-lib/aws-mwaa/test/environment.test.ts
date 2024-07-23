@@ -55,7 +55,8 @@ describe('Environment', () => {
 
       expect(environment.airflowVersion).toBe('2.8.1');
       expect(environment.environmentClass).toBe('mw1.small');
-      expect(environment.name).toBe('Airflow');
+      expect(environment.environmentArn).toBeDefined();
+      expect(environment.environmentName).toBe('Airflow');
       expect(environment.role).toBeInstanceOf(iam.Role);
     });
 
